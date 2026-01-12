@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
+import { ProductionMonthPlan } from '../production-plans/entity/production-month-plans.entity';
+import { ProductionDailyPlans } from '../production-plans/entity/production-daily-plans.entity';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { User } from '../users/entities/user.entity';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASSWORD || 'postgres',
       database: process.env.DATABASE_NAME || 'nestjs_db',
-      entities: [User],
+      entities: [ProductionMonthPlan, ProductionDailyPlans],
       synchronize: process.env.NODE_ENV !== 'production', // Auto sync schema in development
       logging: process.env.NODE_ENV === 'development',
     }),
