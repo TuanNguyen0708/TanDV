@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { MonthlyPlanForm } from './components/ProductionPlans/MonthlyPlanForm';
 import { DailyResultForm } from './components/ProductionPlans/DailyResultForm';
 import { SummaryTable } from './components/ProductionPlans/SummaryTable';
+import { VehicleStatusTable } from './components/Productions/VehicleStatusTable';
+import { StationStatusDisplay } from './components/Productions/StationStatusDisplay';
 import './App.css';
 
-type Tab = 'month' | 'day' | 'summary';
+type Tab = 'month' | 'day' | 'summary' | 'status' | 'station-status';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('summary');
@@ -14,6 +16,18 @@ function App() {
       <header className="app-header">
         <h1>Quản lý sản xuất</h1>
         <nav className="nav-tabs">
+          <button
+            className={`nav-tab ${activeTab === 'station-status' ? 'active' : ''}`}
+            onClick={() => setActiveTab('station-status')}
+          >
+            Trạng thái trạm
+          </button>
+          <button
+            className={`nav-tab ${activeTab === 'status' ? 'active' : ''}`}
+            onClick={() => setActiveTab('status')}
+          >
+            Trạng thái xe
+          </button>
           <button
             className={`nav-tab ${activeTab === 'summary' ? 'active' : ''}`}
             onClick={() => setActiveTab('summary')}
@@ -36,6 +50,8 @@ function App() {
       </header>
 
       <main className="app-main">
+        {activeTab === 'station-status' && <StationStatusDisplay />}
+        {activeTab === 'status' && <VehicleStatusTable />}
         {activeTab === 'summary' && <SummaryTable />}
         {activeTab === 'month' && <MonthlyPlanForm />}
         {activeTab === 'day' && <DailyResultForm />}
