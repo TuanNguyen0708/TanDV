@@ -4,18 +4,30 @@ import { DailyResultForm } from './components/ProductionPlans/DailyResultForm';
 import { SummaryTable } from './components/ProductionPlans/SummaryTable';
 import { VehicleStatusTable } from './components/Productions/VehicleStatusTable';
 import { StationStatusDisplay } from './components/Productions/StationStatusDisplay';
+import { ProductionOverview } from './components/Productions/ProductionOverview';
 import './App.css';
 
-type Tab = 'month' | 'day' | 'summary' | 'status' | 'station-status';
+type Tab = 'month' | 'day' | 'summary' | 'status' | 'station-status' | 'overview';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('summary');
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
+
+  // If overview is active, render it full screen without the app wrapper
+  if (activeTab === 'overview') {
+    return <ProductionOverview />;
+  }
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>Quản lý sản xuất</h1>
         <nav className="nav-tabs">
+          <button
+            className="nav-tab"
+            onClick={() => setActiveTab('overview')}
+          >
+            Tổng quan
+          </button>
           <button
             className={`nav-tab ${activeTab === 'station-status' ? 'active' : ''}`}
             onClick={() => setActiveTab('station-status')}

@@ -1,0 +1,404 @@
+.production-overview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #1a1a1a;
+  border-bottom: 2px solid #333;
+  flex-shrink: 0;
+}
+
+.overview-header-left {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.overview-header-center {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  flex: 1;
+}
+
+.overview-header-right {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* Main Content */
+.overview-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 2rem;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+/* Section */
+.overview-section {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #333;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.section-title-bar {
+  width: 4px;
+  height: 28px;
+  background: #4a90e2;
+  border-radius: 2px;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Production Plan Section */
+.production-plan-section {
+  flex: 0 0 auto;
+}
+
+/* Vehicle Status Section */
+.vehicle-status-section {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Station Status Section */
+.station-status-section {
+  flex: 0 0 auto;
+}
+
+/* Tables */
+.overview-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  background: #1a1a1a;
+}
+
+.overview-table thead {
+  background: #2a2a2a;
+}
+
+.overview-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #ffffff;
+  border-bottom: 2px solid #444;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.overview-table tbody tr {
+  background: #242424;
+  border-bottom: 1px solid #333;
+}
+
+.overview-table tbody tr:nth-child(even) {
+  background: #1f1f1f;
+}
+
+.overview-table tbody tr:hover {
+  background: #2a2a2a;
+}
+
+.overview-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.overview-table td {
+  padding: 0.625rem 1rem;
+  color: #ffffff;
+  border-right: 1px solid #333;
+  font-size: 0.9rem;
+}
+
+.overview-table td:last-child {
+  border-right: none;
+}
+
+.overview-table .no-data {
+  text-align: center;
+  color: #888;
+  padding: 1.5rem;
+  font-style: italic;
+}
+
+.overview-table tfoot {
+  background: #2a2a2a;
+}
+
+.overview-table tfoot .total-row {
+  background: #2a2a2a;
+  border-top: 2px solid #4a90e2;
+}
+
+.overview-table tfoot td {
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Station Grid */
+.overview-station-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.overview-station-card {
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  text-align: center;
+}
+
+.overview-station-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  opacity: 0.95;
+}
+
+.overview-station-status {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.overview-station-reason {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: 0.5rem;
+}
+
+/* Status Colors */
+.overview-status-running {
+  background: linear-gradient(135deg, #2d5016 0%, #1a3009 100%);
+  border: 2px solid #4caf50;
+}
+
+.overview-status-stop {
+  background: linear-gradient(135deg, #6b1f1f 0%, #4a1515 100%);
+  border: 2px solid #f44336;
+}
+
+.overview-status-pending {
+  background: linear-gradient(135deg, #8b6914 0%, #5a4509 100%);
+  border: 2px solid #ff9800;
+}
+
+.overview-status-completed {
+  background: linear-gradient(135deg, #1a4d6b 0%, #0d2a3d 100%);
+  border: 2px solid #2196f3;
+}
+
+.overview-status-unknown {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 2px solid #666;
+}
+
+/* Loading and Error */
+.overview-loading {
+  text-align: center;
+  padding: 1.5rem;
+  color: #888;
+  font-size: 0.95rem;
+}
+
+.overview-error {
+  text-align: center;
+  padding: 1.5rem;
+  color: #ff6b6b;
+  font-size: 0.95rem;
+}
+
+.overview-error-message {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #6b1f1f;
+  color: #ff6b6b;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #8b2a2a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  max-width: 400px;
+}
+
+/* Responsive Design */
+@media (max-width: 1920px) {
+  .overview-header {
+    padding: 1.25rem 2rem;
+  }
+
+  .overview-header-center {
+    font-size: 1.75rem;
+  }
+
+  .overview-main {
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (max-width: 1366px) {
+  .overview-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .overview-header-center {
+    font-size: 1.5rem;
+  }
+
+  .overview-header-left,
+  .overview-header-right {
+    font-size: 1rem;
+  }
+
+  .overview-main {
+    padding: 1rem 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .overview-table {
+    font-size: 0.9rem;
+  }
+
+  .overview-table th,
+  .overview-table td {
+    padding: 0.75rem 1rem;
+  }
+
+  .overview-station-status {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .overview-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .overview-header-center {
+    font-size: 1.25rem;
+    order: 1;
+  }
+
+  .overview-header-left {
+    font-size: 0.9rem;
+    order: 2;
+  }
+
+  .overview-header-right {
+    font-size: 0.85rem;
+    order: 3;
+  }
+
+  .overview-main {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .overview-section {
+    padding: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .overview-table {
+    font-size: 0.8rem;
+  }
+
+  .overview-table th,
+  .overview-table td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .overview-station-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-station-card {
+    min-height: 150px;
+    padding: 1.5rem;
+  }
+
+  .overview-station-status {
+    font-size: 1.25rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .production-overview {
+    position: static;
+    height: auto;
+  }
+
+  .overview-header {
+    page-break-after: avoid;
+  }
+
+  .overview-section {
+    page-break-inside: avoid;
+  }
+}
