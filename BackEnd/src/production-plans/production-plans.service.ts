@@ -21,22 +21,83 @@ export class ProductionPlanService {
   async upsertMonthPlan(dto: CreateMonthPlanDto) {
     const planMonth = `${dto.month}-01`;
 
-    return this.monthRepo.save({
-      model: dto.model,
-      planMonth,
-      plannedMonth: dto.plannedMonth,
+    // Find existing record
+    const existing = await this.monthRepo.findOne({
+      where: { model: dto.model, planMonth },
     });
+
+    if (existing) {
+      // Update existing
+      existing.plannedMonth = dto.plannedMonth;
+      return this.monthRepo.save(existing);
+    } else {
+      // Create new
+      return this.monthRepo.save({
+        model: dto.model,
+        planMonth,
+        plannedMonth: dto.plannedMonth,
+      });
+    }
+  }
+
+  async getAllMonthPlans(month: string) {
+    const planMonth = `${month}-01`;
+    return this.monthRepo.find({
+      where: { planMonth },
+      order: { model: 'ASC' },
+    });
+  }
+
+  async deleteMonthPlan(model: string, month: string) {
+    const planMonth = `${month}-01`;
+    // Delete all daily plans in this month for the model first
+    await this.dayRepo
+      .createQueryBuilder()
+      .delete()
+      .from(ProductionDailyPlans)
+      .where('model = :model', { model })
+      .andWhere('date_trunc(\'month\', work_date) = :planMonth', { planMonth })
+      .execute();
+
+    // Then delete the month plan
+    await this.monthRepo.delete({ model, planMonth });
+    return { success: true };
   }
 
   /* ================== DAILY RESULT ================== */
 
   async upsertDailyResult(dto: CreateDailyResultDto) {
-    return this.dayRepo.save({
-      model: dto.model,
-      workDate: dto.date,
-      plannedDay: dto.plannedDay,
-      actualDay: dto.actualDay ?? 0,
+    // Find existing record
+    const existing = await this.dayRepo.findOne({
+      where: { model: dto.model, workDate: dto.date },
     });
+
+    if (existing) {
+      // Update existing
+      existing.plannedDay = dto.plannedDay;
+      existing.actualDay = dto.actualDay ?? existing.actualDay;
+      return this.dayRepo.save(existing);
+    } else {
+      // Create new
+      return this.dayRepo.save({
+        model: dto.model,
+        workDate: dto.date,
+        plannedDay: dto.plannedDay,
+        actualDay: dto.actualDay ?? 0,
+      });
+    }
+  }
+
+  async getAllDailyPlans(date: string) {
+    return this.dayRepo.find({
+      where: { workDate: date },
+      order: { model: 'ASC' },
+    });
+  }
+
+  async deleteDailyPlan(model: string, date: string) {
+    await this.dayRepo.delete({ model, workDate: date });
+    return { success: true };
   }
 
   /* ================== SUMMARY TABLE ================== */

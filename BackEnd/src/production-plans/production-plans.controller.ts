@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Delete } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -40,6 +40,45 @@ export class ProductionPlanController {
     return this.service.upsertMonthPlan(dto);
   }
 
+  @Get('month-all')
+  @ApiOperation({
+    summary: 'Get all monthly production plans for a month',
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Month in YYYY-MM format',
+    example: '2026-01',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({ status: 200, description: 'Monthly plans retrieved successfully' })
+  getAllMonthPlans(@Query('month') month: string) {
+    return this.service.getAllMonthPlans(month);
+  }
+
+  @Delete('month')
+  @ApiOperation({
+    summary: 'Delete monthly production plan',
+  })
+  @ApiQuery({
+    name: 'model',
+    description: 'Model code',
+    example: 'KL199',
+    type: String,
+    required: true,
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Month in YYYY-MM format',
+    example: '2026-01',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({ status: 200, description: 'Monthly plan deleted successfully' })
+  deleteMonthPlan(@Query('model') model: string, @Query('month') month: string) {
+    return this.service.deleteMonthPlan(model, month);
+  }
+
   @Post('day')
   @ApiOperation({
     summary: 'Create or update daily production result',
@@ -64,6 +103,45 @@ export class ProductionPlanController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   upsertDay(@Body() dto: CreateDailyResultDto) {
     return this.service.upsertDailyResult(dto);
+  }
+
+  @Get('day-all')
+  @ApiOperation({
+    summary: 'Get all daily production plans for a date',
+  })
+  @ApiQuery({
+    name: 'date',
+    description: 'Date in YYYY-MM-DD format',
+    example: '2026-01-12',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({ status: 200, description: 'Daily plans retrieved successfully' })
+  getAllDailyPlans(@Query('date') date: string) {
+    return this.service.getAllDailyPlans(date);
+  }
+
+  @Delete('day')
+  @ApiOperation({
+    summary: 'Delete daily production plan',
+  })
+  @ApiQuery({
+    name: 'model',
+    description: 'Model code',
+    example: 'KL199',
+    type: String,
+    required: true,
+  })
+  @ApiQuery({
+    name: 'date',
+    description: 'Date in YYYY-MM-DD format',
+    example: '2026-01-12',
+    type: String,
+    required: true,
+  })
+  @ApiResponse({ status: 200, description: 'Daily plan deleted successfully' })
+  deleteDailyPlan(@Query('model') model: string, @Query('date') date: string) {
+    return this.service.deleteDailyPlan(model, date);
   }
 
   @Get('summary')

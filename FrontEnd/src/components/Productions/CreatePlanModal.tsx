@@ -185,6 +185,8 @@ interface CreateDayPlanModalProps {
   defaultDate?: string;
   defaultModel?: string;
   loading?: boolean;
+  models?: string[];
+  initialPlannedDay?: number;
 }
 
 export function CreateDayPlanModal({
@@ -194,6 +196,8 @@ export function CreateDayPlanModal({
   defaultDate,
   defaultModel,
   loading = false,
+  models = [],
+  initialPlannedDay,
 }: CreateDayPlanModalProps) {
   const [formData, setFormData] = useState({
     model: defaultModel || '',
@@ -209,11 +213,11 @@ export function CreateDayPlanModal({
       setFormData({
         model: defaultModel || '',
         date: defaultDate || '',
-        plannedDay: '',
+        plannedDay: initialPlannedDay != null ? initialPlannedDay.toString() : '',
       });
       setErrors({});
     }
-  }, [isOpen, defaultDate, defaultModel]);
+  }, [isOpen, defaultDate, defaultModel, initialPlannedDay]);
 
   if (!isOpen) return null;
 
@@ -272,17 +276,22 @@ export function CreateDayPlanModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label htmlFor="day-model">Loại xe *</label>
-            <input
+            <select
               id="day-model"
-              type="text"
               value={formData.model}
               onChange={(e) => {
                 setFormData({ ...formData, model: e.target.value });
                 if (errors.model) setErrors({ ...errors, model: '' });
               }}
-              disabled={loading}
-              placeholder="Nhập loại xe"
-            />
+              disabled={loading || models.length === 0}
+            >
+              <option value="">-- Chọn loại xe --</option>
+              {models.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
             {errors.model && <span className="form-error">{errors.model}</span>}
           </div>
 

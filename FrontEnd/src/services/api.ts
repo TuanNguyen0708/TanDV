@@ -41,6 +41,21 @@ export interface SummaryResponse {
   };
 }
 
+export interface DailyPlan {
+  id: string;
+  model: string;
+  workDate: string;
+  plannedDay: number;
+  actualDay: number;
+}
+
+export interface MonthPlan {
+  id: string;
+  model: string;
+  planMonth: string;
+  plannedMonth: number;
+}
+
 export interface Station {
   id: string;
   code: string;
@@ -111,6 +126,36 @@ export const productionPlansApi = {
       params: { date },
     });
     return response.data;
+  },
+
+  // Get all daily plans for a date
+  getAllDailyPlans: async (date: string): Promise<DailyPlan[]> => {
+    const response = await api.get('/production-plan/day-all', {
+      params: { date },
+    });
+    return response.data;
+  },
+
+  // Get all monthly plans for a month
+  getAllMonthPlans: async (month: string): Promise<MonthPlan[]> => {
+    const response = await api.get('/production-plan/month-all', {
+      params: { month },
+    });
+    return response.data;
+  },
+
+  // Delete daily plan
+  deleteDailyPlan: async (model: string, date: string): Promise<void> => {
+    await api.delete('/production-plan/day', {
+      params: { model, date },
+    });
+  },
+
+  // Delete monthly plan
+  deleteMonthPlan: async (model: string, month: string): Promise<void> => {
+    await api.delete('/production-plan/month', {
+      params: { model, month },
+    });
   },
 };
 

@@ -7,7 +7,6 @@ interface ProductionPlanTableProps {
   showActions?: boolean;
   onEdit?: (row: SummaryResponse['rows'][0]) => void;
   onDelete?: (row: SummaryResponse['rows'][0]) => void;
-  onAddDayPlan?: (row: SummaryResponse['rows'][0]) => void;
 }
 
 export function ProductionPlanTable({
@@ -16,7 +15,6 @@ export function ProductionPlanTable({
   showActions = false,
   onEdit,
   onDelete,
-  onAddDayPlan,
 }: ProductionPlanTableProps) {
   const formatNumber = (num: number) => {
     return new Intl.NumberFormat('vi-VN').format(num);
@@ -67,13 +65,6 @@ export function ProductionPlanTable({
                       title="Xóa"
                     >
                       Xóa
-                    </button>
-                    <button
-                      className="action-btn action-btn-add"
-                      onClick={() => onAddDayPlan?.(row)}
-                      title="Thêm kế hoạch ngày"
-                    >
-                      Thêm KH ngày
                     </button>
                   </div>
                 </td>
