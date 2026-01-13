@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { productionsApi, Station, StationStatus } from '../../services/api';
+import { productionsApi, stationsApi, Station, StationStatus } from '../../services/api';
 import './StationStatusDisplay.css';
 
 interface StationStatusItem {
@@ -269,7 +269,7 @@ function StationManagementModal({
     setLoading(true);
     setError(null);
     try {
-      const data = await productionsApi.getAllStations();
+      const data = await stationsApi.getAllStations();
       setStations(data);
     } catch (err: any) {
       setError(err.message || 'Lỗi khi tải danh sách trạm');
@@ -313,7 +313,7 @@ function StationManagementModal({
     }
 
     try {
-      await productionsApi.deleteStation(id);
+      await stationsApi.deleteStation(id);
       await fetchStations();
       onStationsUpdated();
     } catch (err: any) {

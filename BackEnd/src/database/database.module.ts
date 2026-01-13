@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductionMonthPlan } from '../production-plans/entity/production-month-plans.entity';
 import { ProductionDailyPlans } from '../production-plans/entity/production-daily-plans.entity';
-import { Production } from '../productions/entity/production.entity';
-import { ProductionStationLog } from '../productions/entity/production-station-log.entity';
-import { Station } from '../productions/entity/station.entity';
+import { Production } from '../production/entity/production.entity';
+import { ProductionStationLog } from '../production-station-log/entity/production-station-log.entity';
+import { Station } from '../station/entity/station.entity';
 
 @Module({
   imports: [

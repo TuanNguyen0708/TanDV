@@ -5,8 +5,8 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { Production } from './production.entity';
-import { Station } from './station.entity';
+import { Production } from '../../production/entity/production.entity';
+import { Station } from '../../station/entity/station.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum StationStatus {

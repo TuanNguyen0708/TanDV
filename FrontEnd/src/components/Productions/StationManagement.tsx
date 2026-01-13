@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { productionsApi, Station } from '../../services/api';
+import { stationsApi, Station } from '../../services/api';
 import './StationManagement.css';
 
 interface StationManagementProps {
@@ -32,7 +32,7 @@ export function StationManagement({
     setLoading(true);
     setError(null);
     try {
-      const data = await productionsApi.getAllStations();
+      const data = await stationsApi.getAllStations();
       setStations(data);
     } catch (err: any) {
       setError(err.message || 'Lỗi khi tải danh sách trạm');
@@ -47,9 +47,9 @@ export function StationManagement({
 
     try {
       if (editingStation) {
-        await productionsApi.updateStation(editingStation.id, formData);
+        await stationsApi.updateStation(editingStation.id, formData);
       } else {
-        await productionsApi.createStation(formData);
+        await stationsApi.createStation(formData);
       }
       await fetchStations();
       onStationsUpdated();
@@ -76,7 +76,7 @@ export function StationManagement({
     }
 
     try {
-      await productionsApi.deleteStation(id);
+      await stationsApi.deleteStation(id);
       await fetchStations();
       onStationsUpdated();
     } catch (err: any) {

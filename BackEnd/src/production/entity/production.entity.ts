@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ProductionStationLog } from './production-station-log.entity';
+import { ProductionStationLog } from '../../production-station-log/entity/production-station-log.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum QualityStatus {

@@ -123,31 +123,6 @@ export const productionsApi = {
     return response.data;
   },
 
-  // Station management
-  getAllStations: async (): Promise<Station[]> => {
-    const response = await api.get('/productions/stations');
-    return response.data;
-  },
-
-  getStationById: async (id: string): Promise<Station> => {
-    const response = await api.get(`/productions/stations/${id}`);
-    return response.data;
-  },
-
-  createStation: async (data: Omit<Station, 'id'>): Promise<Station> => {
-    const response = await api.post('/productions/stations', data);
-    return response.data;
-  },
-
-  updateStation: async (id: string, data: Partial<Station>): Promise<Station> => {
-    const response = await api.put(`/productions/stations/${id}`, data);
-    return response.data;
-  },
-
-  deleteStation: async (id: string): Promise<void> => {
-    await api.delete(`/productions/stations/${id}`);
-  },
-
   // Get station status by date
   getStationStatus: async (date: string): Promise<StationStatusResponse> => {
     const response = await api.get('/productions/station-status', {
@@ -181,5 +156,32 @@ export const productionsApi = {
       { params: { date } }
     );
     return response.data;
+  },
+};
+
+export const stationsApi = {
+  // Station management
+  getAllStations: async (): Promise<Station[]> => {
+    const response = await api.get('/stations');
+    return response.data;
+  },
+
+  getStationById: async (id: string): Promise<Station> => {
+    const response = await api.get(`/stations/${id}`);
+    return response.data;
+  },
+
+  createStation: async (data: Omit<Station, 'id'>): Promise<Station> => {
+    const response = await api.post('/stations', data);
+    return response.data;
+  },
+
+  updateStation: async (id: string, data: Partial<Station>): Promise<Station> => {
+    const response = await api.put(`/stations/${id}`, data);
+    return response.data;
+  },
+
+  deleteStation: async (id: string): Promise<void> => {
+    await api.delete(`/stations/${id}`);
   },
 };
