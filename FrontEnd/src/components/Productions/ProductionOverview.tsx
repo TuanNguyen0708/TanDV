@@ -1,9 +1,17 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Production, productionPlansApi, productionsApi, Station, SummaryResponse} from '../../services/api';
+import {
+  Production,
+  productionPlansApi,
+  productionsApi,
+  Station,
+  StationStatusItem,
+  SummaryResponse
+} from '../../services/api';
+import { ProductionPlanTable } from './ProductionPlanTable';
 import './ProductionOverview.css';
 
 export function ProductionOverview() {
-  const [date, setDate] = useState(() => {
+  const [date] = useState(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   });
@@ -11,7 +19,7 @@ export function ProductionOverview() {
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [productions, setProductions] = useState<Production[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
-  const [stationStatuses, setStationStatuses] = useState<any[]>([]);
+  const [stationStatuses, setStationStatuses] = useState<StationStatusItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,14 +48,14 @@ export function ProductionOverview() {
       setStationStatuses(stationStatusData.stations || []);
     } catch (err: any) {
       console.error('Error fetching data:', err);
-      setError(err.message || 'Lỗi khi tải dữ liệu');
+      setError(err?.message || 'Lỗi khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
   }, [date]);
 
   useEffect(() => {
-    fetchAllData();
+    fetchAllData().then();
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchAllData, 30000);
     return () => clearInterval(interval);
@@ -94,9 +102,6 @@ export function ProductionOverview() {
     return `${dayName.toUpperCase()}, ${day}/${month}/${year} - ${hours}:${minutes}`;
   };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('vi-VN').format(num);
-  };
 
   const getStatusInfo = (status: string | null) => {
     switch (status) {
@@ -151,52 +156,7 @@ export function ProductionOverview() {
             <div className="section-title-bar"></div>
             <h2 className="section-title">KẾ HOẠCH SẢN XUẤT</h2>
           </div>
-          {loading && !summary ? (
-            <div className="overview-loading">Đang tải...</div>
-          ) : summary ? (
-            <div className="overview-table-wrapper">
-              <table className="overview-table production-plan-table">
-                <thead>
-                  <tr>
-                    <th>Loại xe</th>
-                    <th>KH ngày</th>
-                    <th>Hoàn thành</th>
-                    <th>KH tháng</th>
-                    <th>Lũy kế</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {summary.rows.map((row, index) => (
-                    <tr key={index}>
-                      <td>{row.model}</td>
-                      <td>{formatNumber(row.plannedDay)}</td>
-                      <td>{formatNumber(row.actualDay)}</td>
-                      <td>{formatNumber(row.plannedMonth)}</td>
-                      <td>{formatNumber(row.cumulative)}</td>
-                    </tr>
-                  ))}
-                  {summary.rows.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="no-data">
-                        Không có dữ liệu
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-                <tfoot>
-                  <tr className="total-row">
-                    <td><strong>TỔNG</strong></td>
-                    <td><strong>{formatNumber(summary.total.plannedDay)}</strong></td>
-                    <td><strong>{formatNumber(summary.total.actualDay)}</strong></td>
-                    <td><strong>{formatNumber(summary.total.plannedMonth)}</strong></td>
-                    <td><strong>{formatNumber(summary.total.cumulative)}</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          ) : (
-            <div className="overview-error">Không có dữ liệu</div>
-          )}
+          <ProductionPlanTable summary={summary} loading={loading && !summary} />
         </section>
 
         {/* Vehicle Status Section */}
