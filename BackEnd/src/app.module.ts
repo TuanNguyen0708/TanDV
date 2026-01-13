@@ -4,6 +4,7 @@ import { ProductionPlansModule } from './production-plans/production-plans.modul
 import { ProductionModule } from './production/production.module';
 import { StationModule } from './station/station.module';
 import { ProductionStationLogModule } from './production-station-log/production-station-log.module';
+import { ModelModule } from './model/model.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { ProductionStationLogModule } from './production-station-log/production-
     ProductionModule,
     StationModule,
     ProductionStationLogModule,
+    ModelModule,
   ],
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
 import { useState, useEffect, FormEvent } from 'react';
+import { modelsApi, Model } from '../../services/api';
 import './CreatePlanModal.css';
 
 interface CreateMonthPlanModalProps {
@@ -28,6 +29,26 @@ export function CreateMonthPlanModal({
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [models, setModels] = useState<Model[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  // Fetch models when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchModels = async () => {
+        setLoadingModels(true);
+        try {
+          const data = await modelsApi.getAllModels();
+          setModels(data);
+        } catch (err) {
+          console.error('Error fetching models:', err);
+        } finally {
+          setLoadingModels(false);
+        }
+      };
+      fetchModels();
+    }
+  }, [isOpen]);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -107,18 +128,28 @@ export function CreateMonthPlanModal({
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
             <label htmlFor="model">Loại xe *</label>
-            <input
+            <select
               id="model"
-              type="text"
               value={formData.model}
               onChange={(e) => {
                 setFormData({ ...formData, model: e.target.value });
                 if (errors.model) setErrors({ ...errors, model: '' });
               }}
-              disabled={loading}
-              placeholder="Nhập loại xe"
-            />
+              disabled={loading || loadingModels || models.length === 0}
+            >
+              <option value="">-- Chọn loại xe --</option>
+              {models.map((model) => (
+                <option key={model.modelId} value={model.modelId}>
+                  {model.name} ({model.modelId})
+                </option>
+              ))}
+            </select>
             {errors.model && <span className="form-error">{errors.model}</span>}
+            {loadingModels && (
+              <span style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.25rem', display: 'block' }}>
+                Đang tải danh sách model...
+              </span>
+            )}
           </div>
 
           <div className="form-group">
@@ -185,7 +216,6 @@ interface CreateDayPlanModalProps {
   defaultDate?: string;
   defaultModel?: string;
   loading?: boolean;
-  models?: string[];
   initialPlannedDay?: number;
 }
 
@@ -196,7 +226,6 @@ export function CreateDayPlanModal({
   defaultDate,
   defaultModel,
   loading = false,
-  models = [],
   initialPlannedDay,
 }: CreateDayPlanModalProps) {
   const [formData, setFormData] = useState({
@@ -206,6 +235,26 @@ export function CreateDayPlanModal({
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [models, setModels] = useState<Model[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  // Fetch models when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const fetchModels = async () => {
+        setLoadingModels(true);
+        try {
+          const data = await modelsApi.getAllModels();
+          setModels(data);
+        } catch (err) {
+          console.error('Error fetching models:', err);
+        } finally {
+          setLoadingModels(false);
+        }
+      };
+      fetchModels();
+    }
+  }, [isOpen]);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -226,7 +275,7 @@ export function CreateDayPlanModal({
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.model.trim()) {
-      newErrors.model = 'Vui lòng nhập loại xe';
+      newErrors.model = 'Vui lòng chọn loại xe';
     }
 
     if (!formData.date.trim()) {
@@ -283,16 +332,21 @@ export function CreateDayPlanModal({
                 setFormData({ ...formData, model: e.target.value });
                 if (errors.model) setErrors({ ...errors, model: '' });
               }}
-              disabled={loading || models.length === 0}
+              disabled={loading || loadingModels || models.length === 0}
             >
               <option value="">-- Chọn loại xe --</option>
-              {models.map((m) => (
-                <option key={m} value={m}>
-                  {m}
+              {models.map((model) => (
+                <option key={model.modelId} value={model.modelId}>
+                  {model.name} ({model.modelId})
                 </option>
               ))}
             </select>
             {errors.model && <span className="form-error">{errors.model}</span>}
+            {loadingModels && (
+              <span style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.25rem', display: 'block' }}>
+                Đang tải danh sách model...
+              </span>
+            )}
           </div>
 
           <div className="form-group">

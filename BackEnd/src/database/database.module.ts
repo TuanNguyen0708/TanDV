@@ -5,6 +5,7 @@ import { ProductionDailyPlans } from '../production-plans/entity/production-dail
 import { Production } from '../production/entity/production.entity';
 import { ProductionStationLog } from '../production-station-log/entity/production-station-log.entity';
 import { Station } from '../station/entity/station.entity';
+import { Model } from 'src/model/entity/model.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Station } from '../station/entity/station.entity';
         Production,
         ProductionStationLog,
         Station,
+        Model,
       ],
       synchronize: process.env.NODE_ENV !== 'production', // Auto sync schema in development
       logging: process.env.NODE_ENV === 'development',

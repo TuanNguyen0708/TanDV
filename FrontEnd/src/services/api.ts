@@ -64,6 +64,12 @@ export interface Station {
   isActive: boolean;
 }
 
+export interface Model {
+  modelId: string;
+  name: string;
+  description?: string;
+}
+
 export type StationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'STOP';
 
 export interface ProductionStationLog {
@@ -228,5 +234,32 @@ export const stationsApi = {
 
   deleteStation: async (id: string): Promise<void> => {
     await api.delete(`/stations/${id}`);
+  },
+};
+
+export const modelsApi = {
+  // Model management
+  getAllModels: async (): Promise<Model[]> => {
+    const response = await api.get('/models');
+    return response.data;
+  },
+
+  getModelById: async (modelId: string): Promise<Model> => {
+    const response = await api.get(`/models/${modelId}`);
+    return response.data;
+  },
+
+  createModel: async (data: Model): Promise<Model> => {
+    const response = await api.post('/models', data);
+    return response.data;
+  },
+
+  updateModel: async (modelId: string, data: Partial<Model>): Promise<Model> => {
+    const response = await api.put(`/models/${modelId}`, data);
+    return response.data;
+  },
+
+  deleteModel: async (modelId: string): Promise<void> => {
+    await api.delete(`/models/${modelId}`);
   },
 };

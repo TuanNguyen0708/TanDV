@@ -458,7 +458,6 @@ export function ProductionPlans() {
         defaultDate={date}
         defaultModel={dayPlanModel}
         loading={submitting}
-        models={Array.from(new Set(monthPlans.map((m) => m.model)))}
         initialPlannedDay={
           dayPlanModel
             ? dailyPlans.find((d) => d.model === dayPlanModel)?.plannedDay
