@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { productionPlansApi, productionsApi, SummaryResponse, Production, Station } from '../../services/api';
+import {useCallback, useEffect, useState} from 'react';
+import {Production, productionPlansApi, productionsApi, Station, SummaryResponse} from '../../services/api';
 import './ProductionOverview.css';
 
 export function ProductionOverview() {
@@ -149,7 +149,7 @@ export function ProductionOverview() {
         <section className="overview-section production-plan-section">
           <div className="section-header">
             <div className="section-title-bar"></div>
-            <h2 className="section-title">| KẾ HOẠCH SẢN XUẤT</h2>
+            <h2 className="section-title">KẾ HOẠCH SẢN XUẤT</h2>
           </div>
           {loading && !summary ? (
             <div className="overview-loading">Đang tải...</div>
@@ -203,7 +203,7 @@ export function ProductionOverview() {
         <section className="overview-section vehicle-status-section">
           <div className="section-header">
             <div className="section-title-bar"></div>
-            <h2 className="section-title">| TRẠNG THÁI XE</h2>
+            <h2 className="section-title">TRẠNG THÁI XE</h2>
           </div>
           {loading && productions.length === 0 ? (
             <div className="overview-loading">Đang tải...</div>
@@ -259,7 +259,7 @@ export function ProductionOverview() {
         <section className="overview-section station-status-section">
           <div className="section-header">
             <div className="section-title-bar"></div>
-            <h2 className="section-title">| TRẠNG THÁI TRẠM</h2>
+            <h2 className="section-title">TRẠNG THÁI TRẠM</h2>
           </div>
           {loading && sortedStationStatuses.length === 0 ? (
             <div className="overview-loading">Đang tải...</div>
