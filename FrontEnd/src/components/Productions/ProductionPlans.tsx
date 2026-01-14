@@ -95,20 +95,26 @@ export function ProductionPlans() {
     }
   };
 
-  const handleOpenDayModal = (row?: SummaryResponse['rows'][0]) => {
-    setError(null);
-    setShowDayModal(true);
-  };
-
   const handleEdit = (row: SummaryResponse['rows'][0]) => {
     setEditingRow(row);
     setError(null);
     setShowMonthModal(true);
   };
 
-  const handleDeleteMonth = (row: SummaryResponse['rows'][0]) => {
+  const handleDeleteMonth = (row: SummaryResponse['rows'][0] | MonthPlan) => {
     setError(null);
-    setDeleteRow(row);
+    // If it's a MonthPlan, convert to SummaryRow format; otherwise use as is
+    const deleteRowData: SummaryResponse['rows'][0] = 'id' in row
+      ? {
+          model: row.model,
+          plannedDay: 0,
+          actualDay: 0,
+          plannedMonth: row.plannedMonth,
+          cumulative: 0,
+        }
+      : row as SummaryResponse['rows'][0];
+
+    setDeleteRow(deleteRowData);
     setDeleteType('month');
     setShowDeleteModal(true);
   };
@@ -122,37 +128,42 @@ export function ProductionPlans() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteRow || deleteType !== 'month') return;
+    if (!deleteRow || !deleteType) return;
 
     setSubmitting(true);
     setError(null);
     setSuccess(null);
     try {
-      // Get current month
-      const today = new Date();
-      const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-
-      await productionPlansApi.deleteMonthPlan(deleteRow.model, month);
+      if (deleteType === 'month') {
+        // Find monthPlan from monthPlans
+        const monthPlan = monthPlans.find(mp => mp.model === deleteRow.model);
+        if (!monthPlan) {
+          throw new Error('Không tìm thấy kế hoạch tháng');
+        }
+        await productionPlansApi.deleteMonthPlan(monthPlan.id);
+      } else if (deleteType === 'day') {
+        // Find dailyPlan from dailyPlans
+        const dailyPlan = dailyPlans.find(dp => dp.model === deleteRow.model);
+        if (!dailyPlan) {
+          throw new Error('Không tìm thấy kế hoạch ngày');
+        }
+        await productionPlansApi.deleteDailyPlan(dailyPlan.id);
+      }
 
       await fetchData();
       setShowDeleteModal(false);
       setDeleteRow(null);
       setDeleteType(null);
-      setSuccess('Xóa kế hoạch tháng thành công!');
+      setSuccess(deleteType === 'month' ? 'Xóa kế hoạch tháng thành công!' : 'Xóa kế hoạch ngày thành công!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      console.error('Error deleting month plan:', err);
-      setError(err?.message || 'Lỗi khi xóa kế hoạch tháng');
+      console.error('Error deleting plan:', err);
+      setError(err?.message || `Lỗi khi xóa kế hoạch ${deleteType === 'month' ? 'tháng' : 'ngày'}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleAddDayPlan = (row: SummaryResponse['rows'][0]) => {
-    setError(null);
-    setDayPlanModel(row.model);
-    setShowDayModal(true);
-  };
 
   const handleCloseDayModal = () => {
     if (!submitting) {
@@ -161,12 +172,21 @@ export function ProductionPlans() {
     }
   };
 
-  const handleDeleteDay = async (row: SummaryResponse['rows'][0]) => {
+  const handleDeleteDay = async (row: SummaryResponse['rows'][0] | DailyPlan) => {
     setError(null);
     setSubmitting(true);
     setSuccess(null);
     try {
-      await productionPlansApi.deleteDailyPlan(row.model, date);
+      // If it's a DailyPlan, use id directly; otherwise find it from dailyPlans
+      const dailyPlan = 'id' in row 
+        ? row as DailyPlan
+        : dailyPlans.find(dp => dp.model === row.model);
+      
+      if (!dailyPlan) {
+        throw new Error('Không tìm thấy kế hoạch ngày');
+      }
+
+      await productionPlansApi.deleteDailyPlan(dailyPlan.id);
       await fetchData();
       setSuccess('Xóa kế hoạch ngày thành công!');
       setTimeout(() => setSuccess(null), 3000);
@@ -182,6 +202,7 @@ export function ProductionPlans() {
     model: string;
     date: string;
     plannedDay: number;
+    monthPlanId: string;
   }) => {
     setSubmitting(true);
     setError(null);
@@ -243,6 +264,7 @@ export function ProductionPlans() {
               <table className="plan-table">
                 <thead>
                   <tr>
+                    <th>Tháng</th>
                     <th>Loại xe</th>
                     <th>KH tháng</th>
                     <th>Hoàn thành</th>
@@ -252,17 +274,23 @@ export function ProductionPlans() {
                 <tbody>
                   {monthPlans.map((row, index) => {
                     const summaryRow = summary?.rows.find((r) => r.model === row.model);
-                    const rowForActions =
+                    const cumulativeValue = summaryRow?.cumulative ?? 0;
+                    const rowForActions: SummaryResponse['rows'][0] =
                       summaryRow ?? {
                         model: row.model,
                         plannedDay: 0,
                         actualDay: 0,
                         plannedMonth: row.plannedMonth,
-                        cumulative: summaryRow?.cumulative ?? 0,
+                        cumulative: cumulativeValue,
                       };
+
+                    // Format planMonth from YYYY-MM-DD to YYYY-MM
+                    const monthDate = new Date(row.planMonth);
+                    const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
 
                     return (
                       <tr key={index}>
+                        <td>{monthStr}</td>
                         <td>{row.model}</td>
                         <td>{formatNumber(row.plannedMonth)}</td>
                         <td>{formatNumber(rowForActions.cumulative)}</td>
@@ -277,7 +305,7 @@ export function ProductionPlans() {
                             </button>
                             <button
                               className="action-btn action-btn-delete"
-                              onClick={() => handleDeleteMonth(rowForActions)}
+                              onClick={() => handleDeleteMonth(row)}
                               title="Xóa"
                             >
                               Xóa
@@ -289,7 +317,7 @@ export function ProductionPlans() {
                   })}
                   {monthPlans.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="no-data">
+                      <td colSpan={5} className="no-data">
                         Không có dữ liệu
                       </td>
                     </tr>
@@ -300,6 +328,7 @@ export function ProductionPlans() {
                     <td>
                       <strong>TỔNG</strong>
                     </td>
+                    <td></td>
                     <td>
                       <strong>
                         {formatNumber(
@@ -351,6 +380,7 @@ export function ProductionPlans() {
               <table className="plan-table">
                 <thead>
                   <tr>
+                    <th>Ngày</th>
                     <th>Loại xe</th>
                     <th>KH ngày</th>
                     <th>Hoàn thành</th>
@@ -360,6 +390,7 @@ export function ProductionPlans() {
                 <tbody>
                   {dailyPlans.map((row, index) => (
                     <tr key={index}>
+                      <td>{row.workDate}</td>
                       <td>{row.model}</td>
                       <td>{formatNumber(row.plannedDay)}</td>
                       <td>{formatNumber(row.actualDay)}</td>
@@ -389,7 +420,7 @@ export function ProductionPlans() {
                   ))}
                   {dailyPlans.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="no-data">
+                      <td colSpan={5} className="no-data">
                         Không có dữ liệu
                       </td>
                     </tr>
@@ -400,6 +431,7 @@ export function ProductionPlans() {
                     <td>
                       <strong>TỔNG</strong>
                     </td>
+                    <td></td>
                     <td>
                       <strong>
                         {formatNumber(
@@ -463,6 +495,7 @@ export function ProductionPlans() {
             ? dailyPlans.find((d) => d.model === dayPlanModel)?.plannedDay
             : undefined
         }
+        monthPlans={monthPlans}
       />
 
       <DeletePlanModal

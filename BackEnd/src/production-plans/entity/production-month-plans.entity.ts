@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { ProductionDailyPlans } from './production-daily-plans.entity';
 
 @Entity('production_month_plans')
 @Unique(['model', 'planMonth'])
@@ -24,6 +26,9 @@ export class ProductionMonthPlan {
 
   @Column({ type: 'int', name: 'planned_month' })
   plannedMonth: number;
+
+  @OneToMany(() => ProductionDailyPlans, (dailyPlan) => dailyPlan.monthPlan)
+  dailyPlans: ProductionDailyPlans[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

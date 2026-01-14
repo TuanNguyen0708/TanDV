@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Query, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Delete, Param } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { ProductionPlanService } from './production-plans.service';
 import { CreateMonthPlanDto } from './dto/create-month-plan.dto';
@@ -56,27 +57,20 @@ export class ProductionPlanController {
     return this.service.getAllMonthPlans(month);
   }
 
-  @Delete('month')
+  @Delete('month/:id')
   @ApiOperation({
     summary: 'Delete monthly production plan',
   })
-  @ApiQuery({
-    name: 'model',
-    description: 'Model code',
-    example: 'KL199',
-    type: String,
-    required: true,
-  })
-  @ApiQuery({
-    name: 'month',
-    description: 'Month in YYYY-MM format',
-    example: '2026-01',
+  @ApiParam({
+    name: 'id',
+    description: 'Month plan ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
     type: String,
     required: true,
   })
   @ApiResponse({ status: 200, description: 'Monthly plan deleted successfully' })
-  deleteMonthPlan(@Query('model') model: string, @Query('month') month: string) {
-    return this.service.deleteMonthPlan(model, month);
+  deleteMonthPlan(@Param('id') id: string) {
+    return this.service.deleteMonthPlan(id);
   }
 
   @Post('day')
@@ -121,27 +115,20 @@ export class ProductionPlanController {
     return this.service.getAllDailyPlans(date);
   }
 
-  @Delete('day')
+  @Delete('day/:id')
   @ApiOperation({
     summary: 'Delete daily production plan',
   })
-  @ApiQuery({
-    name: 'model',
-    description: 'Model code',
-    example: 'KL199',
-    type: String,
-    required: true,
-  })
-  @ApiQuery({
-    name: 'date',
-    description: 'Date in YYYY-MM-DD format',
-    example: '2026-01-12',
+  @ApiParam({
+    name: 'id',
+    description: 'Daily plan ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
     type: String,
     required: true,
   })
   @ApiResponse({ status: 200, description: 'Daily plan deleted successfully' })
-  deleteDailyPlan(@Query('model') model: string, @Query('date') date: string) {
-    return this.service.deleteDailyPlan(model, date);
+  deleteDailyPlan(@Param('id') id: string) {
+    return this.service.deleteDailyPlan(id);
   }
 
   @Get('summary')

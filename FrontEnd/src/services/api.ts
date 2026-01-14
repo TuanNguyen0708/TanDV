@@ -20,6 +20,7 @@ export interface CreateDailyResultDto {
   date: string; // YYYY-MM-DD
   plannedDay: number;
   actualDay?: number;
+  monthPlanId: string;
 }
 
 export interface SummaryRow {
@@ -151,17 +152,13 @@ export const productionPlansApi = {
   },
 
   // Delete daily plan
-  deleteDailyPlan: async (model: string, date: string): Promise<void> => {
-    await api.delete('/production-plan/day', {
-      params: { model, date },
-    });
+  deleteDailyPlan: async (id: string): Promise<void> => {
+    await api.delete(`/production-plan/day/${id}`);
   },
 
   // Delete monthly plan
-  deleteMonthPlan: async (model: string, month: string): Promise<void> => {
-    await api.delete('/production-plan/month', {
-      params: { model, month },
-    });
+  deleteMonthPlan: async (id: string): Promise<void> => {
+    await api.delete(`/production-plan/month/${id}`);
   },
 };
 

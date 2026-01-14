@@ -2,10 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { ProductionMonthPlan } from './production-month-plans.entity';
 
 @Entity('production_daily_plans')
 @Unique(['model', 'workDate'])
@@ -24,6 +27,12 @@ export class ProductionDailyPlans {
 
   @Column({ type: 'int', name: 'actual_day', default: 0 })
   actualDay: number;
+
+  @ManyToOne(() => ProductionMonthPlan, (monthPlan) => monthPlan.dailyPlans, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'month_plan_id' })
+  monthPlan: ProductionMonthPlan;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

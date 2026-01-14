@@ -212,11 +212,12 @@ export function CreateMonthPlanModal({
 interface CreateDayPlanModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { model: string; date: string; plannedDay: number }) => void;
+  onSubmit: (data: { model: string; date: string; plannedDay: number; monthPlanId: string }) => void;
   defaultDate?: string;
   defaultModel?: string;
   loading?: boolean;
   initialPlannedDay?: number;
+  monthPlans?: Array<{ id: string; model: string; planMonth: string; plannedMonth: number }>;
 }
 
 export function CreateDayPlanModal({
@@ -227,11 +228,13 @@ export function CreateDayPlanModal({
   defaultModel,
   loading = false,
   initialPlannedDay,
+  monthPlans = [],
 }: CreateDayPlanModalProps) {
   const [formData, setFormData] = useState({
     model: defaultModel || '',
     date: defaultDate || '',
     plannedDay: '',
+    monthPlanId: '',
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -259,14 +262,31 @@ export function CreateDayPlanModal({
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
+      const initialMonthPlanId = defaultModel && monthPlans.length > 0
+        ? monthPlans.find(mp => mp.model === defaultModel)?.id || ''
+        : '';
+      
       setFormData({
         model: defaultModel || '',
         date: defaultDate || '',
         plannedDay: initialPlannedDay != null ? initialPlannedDay.toString() : '',
+        monthPlanId: initialMonthPlanId,
       });
       setErrors({});
     }
-  }, [isOpen, defaultDate, defaultModel, initialPlannedDay]);
+  }, [isOpen, defaultDate, defaultModel, initialPlannedDay, monthPlans]);
+
+  // Update monthPlanId when model changes
+  useEffect(() => {
+    if (formData.model && monthPlans.length > 0) {
+      const matchingMonthPlan = monthPlans.find(mp => mp.model === formData.model);
+      if (matchingMonthPlan) {
+        setFormData(prev => ({ ...prev, monthPlanId: matchingMonthPlan.id }));
+      } else {
+        setFormData(prev => ({ ...prev, monthPlanId: '' }));
+      }
+    }
+  }, [formData.model, monthPlans]);
 
   if (!isOpen) return null;
 
@@ -293,6 +313,10 @@ export function CreateDayPlanModal({
       }
     }
 
+    if (!formData.monthPlanId.trim()) {
+      newErrors.monthPlanId = 'Vui lòng chọn kế hoạch tháng';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -302,12 +326,13 @@ export function CreateDayPlanModal({
       model: formData.model.trim(),
       date: formData.date,
       plannedDay: parseInt(formData.plannedDay, 10),
+      monthPlanId: formData.monthPlanId,
     });
   };
 
   const handleClose = () => {
     if (!loading) {
-      setFormData({ model: defaultModel || '', date: defaultDate || '', plannedDay: '' });
+      setFormData({ model: defaultModel || '', date: defaultDate || '', plannedDay: '', monthPlanId: '' });
       setErrors({});
       onClose();
     }
@@ -362,6 +387,43 @@ export function CreateDayPlanModal({
               disabled={loading}
             />
             {errors.date && <span className="form-error">{errors.date}</span>}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="day-monthPlan">Kế hoạch tháng *</label>
+            <select
+              id="day-monthPlan"
+              value={formData.monthPlanId}
+              onChange={(e) => {
+                setFormData({ ...formData, monthPlanId: e.target.value });
+                if (errors.monthPlanId) setErrors({ ...errors, monthPlanId: '' });
+              }}
+              disabled={loading || !formData.model || monthPlans.length === 0}
+            >
+              <option value="">-- Chọn kế hoạch tháng --</option>
+              {monthPlans
+                .filter(mp => mp.model === formData.model)
+                .map((monthPlan) => {
+                  const monthDate = new Date(monthPlan.planMonth);
+                  const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+                  return (
+                    <option key={monthPlan.id} value={monthPlan.id}>
+                      {monthStr} - KH: {new Intl.NumberFormat('vi-VN').format(monthPlan.plannedMonth)}
+                    </option>
+                  );
+                })}
+            </select>
+            {errors.monthPlanId && <span className="form-error">{errors.monthPlanId}</span>}
+            {!formData.model && (
+              <span style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.25rem', display: 'block' }}>
+                Vui lòng chọn loại xe trước
+              </span>
+            )}
+            {formData.model && monthPlans.filter(mp => mp.model === formData.model).length === 0 && (
+              <span style={{ fontSize: '0.85rem', color: '#f44336', marginTop: '0.25rem', display: 'block' }}>
+                Không có kế hoạch tháng cho loại xe này
+              </span>
+            )}
           </div>
 
           <div className="form-group">

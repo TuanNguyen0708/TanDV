@@ -23,7 +23,6 @@ async function bootstrap() {
     .setTitle('Backend API')
     .setDescription('API documentation for Backend application')
     .setVersion('1.0')
-    .addTag('api')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

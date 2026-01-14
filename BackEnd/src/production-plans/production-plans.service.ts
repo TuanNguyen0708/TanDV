@@ -44,29 +44,36 @@ export class ProductionPlanService {
     const planMonth = `${month}-01`;
     return this.monthRepo.find({
       where: { planMonth },
+      relations: ['dailyPlans'],
       order: { model: 'ASC' },
     });
   }
 
-  async deleteMonthPlan(model: string, month: string) {
-    const planMonth = `${month}-01`;
-    // Delete all daily plans in this month for the model first
-    await this.dayRepo
-      .createQueryBuilder()
-      .delete()
-      .from(ProductionDailyPlans)
-      .where('model = :model', { model })
-      .andWhere('date_trunc(\'month\', work_date) = :planMonth', { planMonth })
-      .execute();
-
-    // Then delete the month plan
-    await this.monthRepo.delete({ model, planMonth });
+  async deleteMonthPlan(id: string) {
+    // Delete the month plan - daily plans will be automatically deleted due to CASCADE
+    await this.monthRepo.delete(id);
     return { success: true };
   }
 
   /* ================== DAILY RESULT ================== */
 
   async upsertDailyResult(dto: CreateDailyResultDto) {
+    // Find the month plan by ID
+    const monthPlan = await this.monthRepo.findOne({
+      where: { id: dto.monthPlanId },
+    });
+
+    if (!monthPlan) {
+      throw new Error(`Month plan not found with id: ${dto.monthPlanId}`);
+    }
+
+    // Verify model matches
+    if (monthPlan.model !== dto.model) {
+      throw new Error(
+        `Model mismatch: month plan model is ${monthPlan.model}, but provided model is ${dto.model}`,
+      );
+    }
+
     // Find existing record
     const existing = await this.dayRepo.findOne({
       where: { model: dto.model, workDate: dto.date },
@@ -76,6 +83,7 @@ export class ProductionPlanService {
       // Update existing
       existing.plannedDay = dto.plannedDay;
       existing.actualDay = dto.actualDay ?? existing.actualDay;
+      existing.monthPlan = monthPlan;
       return this.dayRepo.save(existing);
     } else {
       // Create new
@@ -84,6 +92,7 @@ export class ProductionPlanService {
         workDate: dto.date,
         plannedDay: dto.plannedDay,
         actualDay: dto.actualDay ?? 0,
+        monthPlan: monthPlan,
       });
     }
   }
@@ -91,12 +100,13 @@ export class ProductionPlanService {
   async getAllDailyPlans(date: string) {
     return this.dayRepo.find({
       where: { workDate: date },
+      relations: ['monthPlan'],
       order: { model: 'ASC' },
     });
   }
 
-  async deleteDailyPlan(model: string, date: string) {
-    await this.dayRepo.delete({ model, workDate: date });
+  async deleteDailyPlan(id: string) {
+    await this.dayRepo.delete(id);
     return { success: true };
   }
 
