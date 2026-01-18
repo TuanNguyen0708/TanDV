@@ -7,7 +7,6 @@ import { UpdateStationStatusDto } from './dto/update-station-status.dto';
 import { ProductionService } from '../production/production.service';
 import { StationService } from '../station/station.service';
 import { Production } from '../production/entity/production.entity';
-import { Station } from '../station/entity/station.entity';
 
 @Injectable()
 export class ProductionStationLogService {
@@ -41,14 +40,12 @@ export class ProductionStationLogService {
     }
 
     if (dto.startTime) {
-      log.startTime = dto.startTime instanceof Date 
-        ? dto.startTime 
-        : new Date(dto.startTime);
+      log.startTime =
+        dto.startTime instanceof Date ? dto.startTime : new Date(dto.startTime);
     }
     if (dto.endTime) {
-      log.endTime = dto.endTime instanceof Date 
-        ? dto.endTime 
-        : new Date(dto.endTime);
+      log.endTime =
+        dto.endTime instanceof Date ? dto.endTime : new Date(dto.endTime);
     }
 
     if (log.startTime && log.endTime) {

@@ -47,4 +47,3 @@ export class ModelController {
     return this.service.delete(modelId);
   }
 }
-

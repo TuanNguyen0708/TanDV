@@ -72,4 +72,3 @@ export class ModelService {
     return { message: 'Model deleted successfully' };
   }
 }
-

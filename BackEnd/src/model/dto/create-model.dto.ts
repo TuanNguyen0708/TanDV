@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength, IsOptional } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateModelDto {
   @ApiProperty({ example: 'KL199' })
@@ -20,4 +20,3 @@ export class CreateModelDto {
   @IsString()
   description?: string;
 }
-

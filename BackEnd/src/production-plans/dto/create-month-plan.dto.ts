@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, MaxLength, Matches } from 'class-validator';
+import { IsNumber, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreateMonthPlanDto {
   @ApiProperty({

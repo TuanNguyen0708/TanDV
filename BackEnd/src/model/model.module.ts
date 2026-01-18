@@ -11,4 +11,3 @@ import { ModelController } from './model.controller';
   exports: [ModelService],
 })
 export class ModelModule {}
-

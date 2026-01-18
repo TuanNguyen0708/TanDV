@@ -1,11 +1,19 @@
-import { Body, Controller, Get, Post, Query, Delete, Param } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
+import {
   ApiBody,
-  ApiQuery,
+  ApiOperation,
   ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
 import { ProductionPlanService } from './production-plans.service';
 import { CreateMonthPlanDto } from './dto/create-month-plan.dto';
@@ -19,7 +27,8 @@ export class ProductionPlanController {
   @Post('month')
   @ApiOperation({
     summary: 'Create or update monthly production plan',
-    description: 'Creates a new monthly production plan or updates an existing one for a specific model and month',
+    description:
+      'Creates a new monthly production plan or updates an existing one for a specific model and month',
   })
   @ApiBody({ type: CreateMonthPlanDto })
   @ApiResponse({
@@ -52,7 +61,10 @@ export class ProductionPlanController {
     type: String,
     required: true,
   })
-  @ApiResponse({ status: 200, description: 'Monthly plans retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Monthly plans retrieved successfully',
+  })
   getAllMonthPlans(@Query('month') month: string) {
     return this.service.getAllMonthPlans(month);
   }
@@ -68,7 +80,10 @@ export class ProductionPlanController {
     type: String,
     required: true,
   })
-  @ApiResponse({ status: 200, description: 'Monthly plan deleted successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Monthly plan deleted successfully',
+  })
   deleteMonthPlan(@Param('id') id: string) {
     return this.service.deleteMonthPlan(id);
   }
@@ -76,7 +91,8 @@ export class ProductionPlanController {
   @Post('day')
   @ApiOperation({
     summary: 'Create or update daily production result',
-    description: 'Creates a new daily production result or updates an existing one for a specific model and date',
+    description:
+      'Creates a new daily production result or updates an existing one for a specific model and date',
   })
   @ApiBody({ type: CreateDailyResultDto })
   @ApiResponse({
@@ -110,7 +126,10 @@ export class ProductionPlanController {
     type: String,
     required: true,
   })
-  @ApiResponse({ status: 200, description: 'Daily plans retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Daily plans retrieved successfully',
+  })
   getAllDailyPlans(@Query('date') date: string) {
     return this.service.getAllDailyPlans(date);
   }
@@ -134,7 +153,8 @@ export class ProductionPlanController {
   @Get('summary')
   @ApiOperation({
     summary: 'Get daily production summary',
-    description: 'Retrieves a summary of production data for all models on a specific date, including planned/actual daily values, monthly plan, and cumulative production',
+    description:
+      'Retrieves a summary of production data for all models on a specific date, including planned/actual daily values, monthly plan, and cumulative production',
   })
   @ApiQuery({
     name: 'date',
@@ -167,7 +187,10 @@ export class ProductionPlanController {
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Bad request - invalid date format' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid date format',
+  })
   getSummary(@Query('date') date: string) {
     return this.service.getDailySummary(date);
   }

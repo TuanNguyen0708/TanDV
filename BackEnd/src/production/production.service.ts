@@ -5,7 +5,6 @@ import { Production } from './entity/production.entity';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateQualityDto } from './dto/update-quality.dto';
 import { Station } from '../station/entity/station.entity';
-import { ProductionStationLog } from '../production-station-log/entity/production-station-log.entity';
 
 @Injectable()
 export class ProductionService {

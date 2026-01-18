@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDateString, MaxLength } from 'class-validator';
+import { IsDateString, IsString, MaxLength } from 'class-validator';
 
 export class CreateProductionDto {
   @ApiProperty()

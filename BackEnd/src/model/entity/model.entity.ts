@@ -15,4 +15,3 @@ export class Model {
   @Column({ type: 'text', nullable: true })
   description?: string;
 }
-

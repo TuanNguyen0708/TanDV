@@ -1,12 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Put,
-  Query,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Put, Query } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ProductionStationLogService } from './production-station-log.service';
 import { UpdateStationTimeDto } from './dto/update-station-time.dto';
 import { UpdateStationStatusDto } from './dto/update-station-status.dto';
