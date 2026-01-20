@@ -59,10 +59,18 @@ export interface MonthPlan {
 
 export interface Station {
   id: string;
-  code: string;
-  name: string;
-  sequence: number;
+  stationName: string;
+  description?: string;
   isActive: boolean;
+  currentStatusCode: StationStatusCode;
+  currentStatusBrief?: string;
+}
+
+export enum StationStatusCode {
+  IDLE = 'IDLE',
+  RUNNING = 'RUNNING',
+  STOP = 'STOP',
+  EMERGENCY = 'EMERGENCY',
 }
 
 export interface Model {
@@ -71,7 +79,7 @@ export interface Model {
   description?: string;
 }
 
-export type StationStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'STOP';
+export type StationStatus = 'NOT_START' | 'PENDING' | 'RUNNING' | 'STOP';
 
 export interface ProductionStationLog {
   id: string;
@@ -162,75 +170,56 @@ export const productionPlansApi = {
   },
 };
 
+// ⚠️ DEPRECATED - These APIs no longer exist in the backend
+// Use productionStatusApi and stationsApi instead
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const productionsApi = {
-  // Get production status by date
-  getStatus: async (date: string): Promise<ProductionStatusResponse> => {
-    const response = await api.get('/productions/status', {
-      params: { date },
-    });
-    return response.data;
+  // ❌ OLD API - Backend endpoint removed
+  getStatus: async (..._args: unknown[]): Promise<ProductionStatusResponse> => {
+    throw new Error('API removed: Use productionStatusApi.getAll() instead');
   },
 
-  // Get station status by date
-  getStationStatus: async (date: string): Promise<StationStatusResponse> => {
-    const response = await api.get('/productions/station-status', {
-      params: { date },
-    });
-    return response.data;
+  // ❌ OLD API - Backend endpoint removed
+  getStationStatus: async (..._args: unknown[]): Promise<StationStatusResponse> => {
+    throw new Error('API removed: Use stationsApi.getAllStations() instead');
   },
 
-  // Update station status
-  updateStationStatus: async (
-    productionId: string,
-    stationId: string,
-    data: { status?: StationStatus; reason?: string }
-  ): Promise<any> => {
-    const response = await api.put(
-      `/productions/${productionId}/stations/${stationId}/status`,
-      data
-    );
-    return response.data;
+  // ❌ OLD API - Backend endpoint removed
+  updateStationStatus: async (..._args: unknown[]): Promise<void> => {
+    throw new Error('API removed: Update logic needed for new backend structure');
   },
 
-  // Update station status by date
-  updateStationStatusByDate: async (
-    date: string,
-    stationId: string,
-    data: { status?: StationStatus; reason?: string }
-  ): Promise<any> => {
-    const response = await api.put(
-      `/productions/stations/${stationId}/status`,
-      data,
-      { params: { date } }
-    );
-    return response.data;
+  // ❌ OLD API - Backend endpoint removed
+  updateStationStatusByDate: async (..._args: unknown[]): Promise<void> => {
+    throw new Error('API removed: Update logic needed for new backend structure');
   },
 };
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export const stationsApi = {
   // Station management
   getAllStations: async (): Promise<Station[]> => {
-    const response = await api.get('/stations');
+    const response = await api.get('/station');
     return response.data;
   },
 
   getStationById: async (id: string): Promise<Station> => {
-    const response = await api.get(`/stations/${id}`);
+    const response = await api.get(`/station/${id}`);
     return response.data;
   },
 
   createStation: async (data: Omit<Station, 'id'>): Promise<Station> => {
-    const response = await api.post('/stations', data);
+    const response = await api.post('/station', data);
     return response.data;
   },
 
   updateStation: async (id: string, data: Partial<Station>): Promise<Station> => {
-    const response = await api.put(`/stations/${id}`, data);
+    const response = await api.patch(`/station/${id}`, data);
     return response.data;
   },
 
   deleteStation: async (id: string): Promise<void> => {
-    await api.delete(`/stations/${id}`);
+    await api.delete(`/station/${id}`);
   },
 };
 
@@ -258,5 +247,128 @@ export const modelsApi = {
 
   deleteModel: async (modelId: string): Promise<void> => {
     await api.delete(`/models/${modelId}`);
+  },
+};
+
+// ========== NEW APIS FOR NEW DATABASE STRUCTURE ==========
+
+export interface ProductionStatus {
+  id: string;
+  modelID: string;
+  vehicleID: string;
+  productionDate: string;
+  stationStart?: string;
+  stationEnd?: string;
+  quality?: 'OK' | 'NG';
+  remark?: string;
+}
+
+export interface StationDailyStatus {
+  id: string;
+  stationID: string;
+  statusDate: string;
+  startTime?: string;
+  stopTime?: string;
+  totalDowntime?: number;
+  station?: Station;
+}
+
+export interface StationDowntimeLog {
+  id: string;
+  stationDailyID: string;
+  downTimeLog?: string;
+  downtimeStart?: string;
+  downtimeStop?: string;
+  stationDailyStatus?: StationDailyStatus;
+}
+
+export const productionStatusApi = {
+  // Production Status management
+  getAll: async (): Promise<ProductionStatus[]> => {
+    const response = await api.get('/production-status');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<ProductionStatus> => {
+    const response = await api.get(`/production-status/${id}`);
+    return response.data;
+  },
+
+  create: async (data: Omit<ProductionStatus, 'id'>): Promise<ProductionStatus> => {
+    const response = await api.post('/production-status', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<ProductionStatus>): Promise<ProductionStatus> => {
+    const response = await api.patch(`/production-status/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/production-status/${id}`);
+  },
+};
+
+export const stationDailyStatusApi = {
+  // Station Daily Status management
+  getAll: async (): Promise<StationDailyStatus[]> => {
+    const response = await api.get('/station-daily-status');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<StationDailyStatus> => {
+    const response = await api.get(`/station-daily-status/${id}`);
+    return response.data;
+  },
+
+  getByStation: async (stationId: string): Promise<StationDailyStatus[]> => {
+    const response = await api.get(`/station-daily-status/station/${stationId}`);
+    return response.data;
+  },
+
+  create: async (data: Omit<StationDailyStatus, 'id'>): Promise<StationDailyStatus> => {
+    const response = await api.post('/station-daily-status', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<StationDailyStatus>): Promise<StationDailyStatus> => {
+    const response = await api.patch(`/station-daily-status/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/station-daily-status/${id}`);
+  },
+};
+
+export const stationDowntimeLogApi = {
+  // Station Downtime Log management
+  getAll: async (): Promise<StationDowntimeLog[]> => {
+    const response = await api.get('/station-downtime-log');
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<StationDowntimeLog> => {
+    const response = await api.get(`/station-downtime-log/${id}`);
+    return response.data;
+  },
+
+  getByStationDaily: async (stationDailyId: string): Promise<StationDowntimeLog[]> => {
+    const response = await api.get(`/station-downtime-log/station-daily/${stationDailyId}`);
+    return response.data;
+  },
+
+  create: async (data: Omit<StationDowntimeLog, 'id'>): Promise<StationDowntimeLog> => {
+    const response = await api.post('/station-downtime-log', data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<StationDowntimeLog>): Promise<StationDowntimeLog> => {
+    const response = await api.patch(`/station-downtime-log/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/station-downtime-log/${id}`);
   },
 };

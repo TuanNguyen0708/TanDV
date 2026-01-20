@@ -249,6 +249,47 @@
   border: 2px solid #666;
 }
 
+.overview-status-not-start {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 2px solid #666;
+}
+
+.overview-status-idle {
+  background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+  border: 2px solid #9e9e9e;
+}
+
+.overview-status-emergency {
+  background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
+  border: 2px solid #ff0000;
+  animation: emergencyBlink 1s infinite;
+}
+
+@keyframes emergencyBlink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0.7; }
+}
+
+/* Quality Badges */
+.quality-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.quality-ok {
+  background: #28a745;
+  color: #ffffff;
+}
+
+.quality-ng {
+  background: #dc3545;
+  color: #ffffff;
+}
+
 /* Loading and Error */
 .overview-loading {
   text-align: center;

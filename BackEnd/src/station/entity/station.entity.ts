@@ -1,24 +1,27 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { StationStatusCode } from '../../common/enums/station-status-code.enum';
 
 @Entity('station')
 export class Station {
-  @ApiProperty()
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiProperty({ example: 'ST01' })
-  @Column({ unique: true })
-  code: string;
-
-  @ApiProperty({ example: 'Khung gầm' })
   @Column()
-  name: string;
+  stationName: string;
 
-  @ApiProperty({ example: 1 })
-  @Column()
-  sequence: number;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: StationStatusCode,
+    default: StationStatusCode.IDLE,
+  })
+  currentStatusCode: StationStatusCode;
+
+  @Column({ type: 'text', nullable: true })
+  currentStatusBrief: string;
 }

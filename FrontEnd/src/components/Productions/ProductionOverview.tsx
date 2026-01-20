@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useState} from 'react';
 import {
-  Production,
   productionPlansApi,
-  productionsApi,
+  productionStatusApi,
+  ProductionStatus,
   Station,
-  StationStatusItem,
+  stationsApi,
   SummaryResponse
 } from '../../services/api';
 import { ProductionPlanTable } from './ProductionPlanTable';
@@ -17,9 +17,8 @@ export function ProductionOverview() {
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
-  const [productions, setProductions] = useState<Production[]>([]);
+  const [productionStatuses, setProductionStatuses] = useState<ProductionStatus[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
-  const [stationStatuses, setStationStatuses] = useState<StationStatusItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,17 +34,16 @@ export function ProductionOverview() {
     setLoading(true);
     setError(null);
     try {
-      // Fetch all data in parallel
-      const [summaryData, statusData, stationStatusData] = await Promise.all([
+      // Fetch all data in parallel using NEW APIs
+      const [summaryData, productionStatusData, stationsData] = await Promise.all([
         productionPlansApi.getDailySummary(date),
-        productionsApi.getStatus(date),
-        productionsApi.getStationStatus(date),
+        productionStatusApi.getAll(),
+        stationsApi.getAllStations(),
       ]);
 
       setSummary(summaryData);
-      setStations(statusData.stations || []);
-      setProductions(statusData.productions || []);
-      setStationStatuses(stationStatusData.stations || []);
+      setProductionStatuses(productionStatusData || []);
+      setStations(stationsData || []);
     } catch (err: any) {
       console.error('Error fetching data:', err);
       setError(err?.message || 'Lỗi khi tải dữ liệu');
@@ -69,24 +67,19 @@ export function ProductionOverview() {
     return `${hours}:${minutes}`;
   };
 
-  const formatStationTime = (production: Production, stationId: string): string => {
-    if (!production.stations || production.stations.length === 0) {
-      return '...';
-    }
-    
-    const log = production.stations.find((s) => s?.station?.id === stationId);
-    if (!log || !log.station) return '...';
-
-    const hasStart = !!log.startTime;
-    const hasEnd = !!log.endTime;
+  const formatStationTime = (productionStatus: ProductionStatus): string => {
+    const hasStart = !!productionStatus.stationStart;
+    const hasEnd = !!productionStatus.stationEnd;
 
     if (!hasStart && !hasEnd) return '...';
     if (hasStart && !hasEnd) {
-      return `${formatTime(log.startTime)} – ...`;
+      return `${formatTime(productionStatus.stationStart)} – ...`;
     }
     if (hasStart && hasEnd) {
-      const minutes = log.periodMinutes || 0;
-      return `${formatTime(log.startTime)} – ${formatTime(log.endTime)} (${minutes}')`;
+      const start = new Date(productionStatus.stationStart!);
+      const end = new Date(productionStatus.stationEnd!);
+      const minutes = Math.round((end.getTime() - start.getTime()) / 60000);
+      return `${formatTime(productionStatus.stationStart)} – ${formatTime(productionStatus.stationEnd)} (${minutes}')`;
     }
     return '...';
   };
@@ -103,8 +96,8 @@ export function ProductionOverview() {
   };
 
 
-  const getStatusInfo = (status: string | null) => {
-    switch (status) {
+  const getStatusInfo = (statusCode: string) => {
+    switch (statusCode) {
       case 'RUNNING':
         return {
           label: 'RUNNING',
@@ -114,30 +107,20 @@ export function ProductionOverview() {
         return {
           label: 'STOP',
           className: 'overview-status-stop',
-          reason: 'Lỗi',
         };
-      case 'PENDING':
+      case 'EMERGENCY':
         return {
-          label: 'TẠM DỪNG',
-          className: 'overview-status-pending',
+          label: 'KHẨN CẤP',
+          className: 'overview-status-emergency',
         };
-      case 'COMPLETED':
-        return {
-          label: 'HOÀN THÀNH',
-          className: 'overview-status-completed',
-        };
+      case 'IDLE':
       default:
         return {
-          label: 'CHƯA CÓ DỮ LIỆU',
-          className: 'overview-status-unknown',
+          label: 'RẢNH',
+          className: 'overview-status-idle',
         };
     }
   };
-
-  const sortedStations = [...stations].sort((a, b) => a.sequence - b.sequence);
-  const sortedStationStatuses = [...stationStatuses].sort(
-    (a, b) => a.station.sequence - b.station.sequence
-  );
 
   return (
     <div className="production-overview">
@@ -163,51 +146,51 @@ export function ProductionOverview() {
         <section className="overview-section vehicle-status-section">
           <div className="section-header">
             <div className="section-title-bar"></div>
-            <h2 className="section-title">TRẠNG THÁI XE</h2>
+            <h2 className="section-title">TRẠNG THÁI SẢN XUẤT</h2>
           </div>
-          {loading && productions.length === 0 ? (
+          {loading && productionStatuses.length === 0 ? (
             <div className="overview-loading">Đang tải...</div>
           ) : (
             <div className="overview-table-wrapper">
               <table className="overview-table vehicle-status-table">
                 <thead>
                   <tr>
-                    <th>Mã số</th>
-                    <th>Loại xe</th>
-                    {sortedStations.length > 0 ? (
-                      sortedStations.map((station, index) => (
-                        <th key={station.id}>
-                          Trạm {index + 1} – {station.name}
-                        </th>
-                      ))
-                    ) : (
-                      <th>Trạm</th>
-                    )}
+                    <th>Số xe</th>
+                    <th>Model</th>
+                    <th>Ngày sản xuất</th>
+                    <th>Thời gian trạm</th>
+                    <th>Chất lượng</th>
+                    <th>Ghi chú</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {productions.length === 0 ? (
+                  {productionStatuses.length === 0 ? (
                     <tr>
-                      <td colSpan={2 + sortedStations.length} className="no-data">
+                      <td colSpan={6} className="no-data">
                         Không có dữ liệu
                       </td>
                     </tr>
                   ) : (
-                    productions.map((production) => (
-                      <tr key={production.id}>
-                        <td>{production.productionNo}</td>
-                        <td>{production.model}</td>
-                        {sortedStations.length > 0 ? (
-                          sortedStations.map((station) => (
-                            <td key={station.id}>
-                              {formatStationTime(production, station.id)}
-                            </td>
-                          ))
-                        ) : (
-                          <td>...</td>
-                        )}
-                      </tr>
-                    ))
+                    productionStatuses
+                      .filter(ps => ps.productionDate === date)
+                      .map((productionStatus) => (
+                        <tr key={productionStatus.id}>
+                          <td>{productionStatus.vehicleID}</td>
+                          <td>{productionStatus.modelID}</td>
+                          <td>{new Date(productionStatus.productionDate).toLocaleDateString('vi-VN')}</td>
+                          <td>{formatStationTime(productionStatus)}</td>
+                          <td>
+                            {productionStatus.quality ? (
+                              <span className={`quality-badge quality-${productionStatus.quality.toLowerCase()}`}>
+                                {productionStatus.quality}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#888', fontStyle: 'italic' }}>-</span>
+                            )}
+                          </td>
+                          <td>{productionStatus.remark || <span style={{ color: '#888', fontStyle: 'italic' }}>-</span>}</td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </table>
@@ -221,29 +204,31 @@ export function ProductionOverview() {
             <div className="section-title-bar"></div>
             <h2 className="section-title">TRẠNG THÁI TRẠM</h2>
           </div>
-          {loading && sortedStationStatuses.length === 0 ? (
+          {loading && stations.length === 0 ? (
             <div className="overview-loading">Đang tải...</div>
-          ) : sortedStationStatuses.length === 0 ? (
+          ) : stations.length === 0 ? (
             <div className="overview-error">Không có trạm nào</div>
           ) : (
             <div className="overview-station-grid">
-              {sortedStationStatuses.map((item) => {
-                const statusInfo = getStatusInfo(item.status);
-                return (
-                  <div
-                    key={item.station.id}
-                    className={`overview-station-card ${statusInfo.className}`}
-                  >
-                    <div className="overview-station-name">
-                      Trạm {item.station.sequence} – {item.station.name}
+              {stations
+                .filter(station => station.isActive)
+                .map((station, index) => {
+                  const statusInfo = getStatusInfo(station.currentStatusCode);
+                  return (
+                    <div
+                      key={station.id}
+                      className={`overview-station-card ${statusInfo.className}`}
+                    >
+                      <div className="overview-station-name">
+                        Trạm {index + 1} – {station.stationName}
+                      </div>
+                      <div className="overview-station-status">{statusInfo.label}</div>
+                      {station.currentStatusBrief && (
+                        <div className="overview-station-reason">{station.currentStatusBrief}</div>
+                      )}
                     </div>
-                    <div className="overview-station-status">{statusInfo.label}</div>
-                    {item.reason && (
-                      <div className="overview-station-reason">{item.reason}</div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
         </section>

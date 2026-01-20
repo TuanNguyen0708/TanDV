@@ -1,18 +1,20 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from './database/database.module';
 import { ProductionPlansModule } from './production-plans/production-plans.module';
-import { ProductionModule } from './production/production.module';
+import { ProductionStatusModule } from './production-status/production-status.module';
 import { StationModule } from './station/station.module';
-import { ProductionStationLogModule } from './production-station-log/production-station-log.module';
+import { StationDailyStatusModule } from './station-daily-status/station-daily-status.module';
+import { StationDowntimeLogModule } from './station-downtime-log/station-downtime-log.module';
 import { ModelModule } from './model/model.module';
 
 @Module({
   imports: [
     DatabaseModule,
     ProductionPlansModule,
-    ProductionModule,
+    ProductionStatusModule,
     StationModule,
-    ProductionStationLogModule,
+    StationDailyStatusModule,
+    StationDowntimeLogModule,
     ModelModule,
   ],
 })
