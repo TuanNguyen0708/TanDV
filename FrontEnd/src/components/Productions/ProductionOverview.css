@@ -17,13 +17,14 @@
 
 /* Header */
 .overview-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
   align-items: center;
   padding: 1rem 2rem;
   background: #1a1a1a;
   border-bottom: 2px solid #333;
   flex-shrink: 0;
+  gap: 1rem;
 }
 
 .overview-header-left {
@@ -45,6 +46,7 @@
   font-weight: 500;
   color: #ffffff;
   white-space: nowrap;
+  text-align: right;
 }
 
 /* Main Content */
@@ -180,6 +182,18 @@
   padding: 0.75rem 1rem;
   font-weight: 700;
   color: #ffffff;
+}
+
+/* Vehicle ID Cell */
+.vehicle-id-cell {
+  font-weight: 700;
+  color: #ffffff !important;
+}
+
+/* Completion Rate Cell */
+.completion-rate {
+  font-weight: 700;
+  text-align: center;
 }
 
 /* Station Grid */

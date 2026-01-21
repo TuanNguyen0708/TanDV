@@ -20,6 +20,12 @@ export function ProductionPlanTable({
     return new Intl.NumberFormat('vi-VN').format(num);
   };
 
+  const calculateCompletionRate = (actual: number, planned: number): string => {
+    if (planned === 0) return '0%';
+    const rate = (actual / planned) * 100;
+    return `${rate.toFixed(1)}%`;
+  };
+
   if (loading && !summary) {
     return <div className="plan-table-loading">Đang tải...</div>;
   }
@@ -38,6 +44,7 @@ export function ProductionPlanTable({
             <th>Hoàn thành</th>
             <th>KH tháng</th>
             <th>Lũy kế</th>
+            <th>Tiến độ (%)</th>
             {showActions && <th>Thao tác</th>}
           </tr>
         </thead>
@@ -49,6 +56,9 @@ export function ProductionPlanTable({
               <td>{formatNumber(row.actualDay)}</td>
               <td>{formatNumber(row.plannedMonth)}</td>
               <td>{formatNumber(row.cumulative)}</td>
+              <td className="completion-rate">
+                {calculateCompletionRate(row.actualDay, row.plannedDay)}
+              </td>
               {showActions && (
                 <td className="action-cell">
                   <div className="action-buttons">
@@ -73,7 +83,7 @@ export function ProductionPlanTable({
           ))}
           {summary.rows.length === 0 && (
             <tr>
-              <td colSpan={showActions ? 6 : 5} className="no-data">
+              <td colSpan={showActions ? 7 : 6} className="no-data">
                 Không có dữ liệu
               </td>
             </tr>
@@ -86,6 +96,9 @@ export function ProductionPlanTable({
             <td><strong>{formatNumber(summary.total.actualDay)}</strong></td>
             <td><strong>{formatNumber(summary.total.plannedMonth)}</strong></td>
             <td><strong>{formatNumber(summary.total.cumulative)}</strong></td>
+            <td className="completion-rate">
+              <strong>{calculateCompletionRate(summary.total.actualDay, summary.total.plannedDay)}</strong>
+            </td>
             {showActions && <td></td>}
           </tr>
         </tfoot>

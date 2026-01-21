@@ -74,6 +74,11 @@
   color: #ffffff;
 }
 
+.plan-table .completion-rate {
+  font-weight: 700;
+  text-align: center;
+}
+
 .plan-table-loading {
   text-align: center;
   padding: 1.5rem;

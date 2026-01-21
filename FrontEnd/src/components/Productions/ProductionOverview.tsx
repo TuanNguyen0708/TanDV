@@ -146,7 +146,7 @@ export function ProductionOverview() {
         <section className="overview-section vehicle-status-section">
           <div className="section-header">
             <div className="section-title-bar"></div>
-            <h2 className="section-title">TRẠNG THÁI SẢN XUẤT</h2>
+            <h2 className="section-title">TRẠNG THÁI XE</h2>
           </div>
           {loading && productionStatuses.length === 0 ? (
             <div className="overview-loading">Đang tải...</div>
@@ -155,10 +155,16 @@ export function ProductionOverview() {
               <table className="overview-table vehicle-status-table">
                 <thead>
                   <tr>
-                    <th>Số xe</th>
-                    <th>Model</th>
-                    <th>Ngày sản xuất</th>
-                    <th>Thời gian trạm</th>
+                    <th>Mã số</th>
+                    <th>Loại xe</th>
+                    {stations
+                      .filter(station => station.isActive)
+                      .map((station, index) => (
+                        <th key={station.id}>
+                          Trạm {index + 1} - {station.stationName}
+                        </th>
+                      ))
+                    }
                     <th>Chất lượng</th>
                     <th>Ghi chú</th>
                   </tr>
@@ -166,7 +172,7 @@ export function ProductionOverview() {
                 <tbody>
                   {productionStatuses.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="no-data">
+                      <td colSpan={4 + stations.filter(s => s.isActive).length} className="no-data">
                         Không có dữ liệu
                       </td>
                     </tr>
@@ -175,20 +181,26 @@ export function ProductionOverview() {
                       .filter(ps => ps.productionDate === date)
                       .map((productionStatus) => (
                         <tr key={productionStatus.id}>
-                          <td>{productionStatus.vehicleID}</td>
+                          <td className="vehicle-id-cell">{productionStatus.vehicleID}</td>
                           <td>{productionStatus.modelID}</td>
-                          <td>{new Date(productionStatus.productionDate).toLocaleDateString('vi-VN')}</td>
-                          <td>{formatStationTime(productionStatus)}</td>
+                          {stations
+                            .filter(station => station.isActive)
+                            .map((station, index) => (
+                              <td key={station.id}>
+                                {index === 0 ? formatStationTime(productionStatus) : '...'}
+                              </td>
+                            ))
+                          }
                           <td>
                             {productionStatus.quality ? (
                               <span className={`quality-badge quality-${productionStatus.quality.toLowerCase()}`}>
                                 {productionStatus.quality}
                               </span>
                             ) : (
-                              <span style={{ color: '#888', fontStyle: 'italic' }}>-</span>
+                              <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>
                             )}
                           </td>
-                          <td>{productionStatus.remark || <span style={{ color: '#888', fontStyle: 'italic' }}>-</span>}</td>
+                          <td>{productionStatus.remark || <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>}</td>
                         </tr>
                       ))
                   )}
