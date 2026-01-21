@@ -19,8 +19,8 @@ export function DeleteModelModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content">
         <div className="modal-header">
           <h2 className="modal-title">Xác nhận xóa</h2>
           <button className="modal-close" onClick={onClose} disabled={loading}>

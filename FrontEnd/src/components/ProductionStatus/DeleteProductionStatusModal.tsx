@@ -17,8 +17,8 @@ export function DeleteProductionStatusModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-delete" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content modal-delete">
         <div className="modal-header">
           <h2>Xác nhận xóa</h2>
           <button className="modal-close" onClick={onClose}>

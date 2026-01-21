@@ -109,8 +109,8 @@ export function UpdateStationModal({
   const hasUnfinishedStation = lastStation && !lastStation.endTime;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content">
         <div className="modal-header">
           <h2>Cập nhật trạm - {status.vehicleID}</h2>
           <button className="modal-close" onClick={onClose}>

@@ -113,8 +113,8 @@ export function StationDailyModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content">
         <div className="modal-header">
           <h2>
             {status ? 'Sửa Station Daily Status' : 'Thêm Station Daily Status'}
