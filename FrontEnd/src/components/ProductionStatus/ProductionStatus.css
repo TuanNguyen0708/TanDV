@@ -217,8 +217,12 @@
   transition: all 0.2s;
 }
 
-.actions .btn-edit:hover {
+.actions .btn-station:hover {
   background: #e7f3ff;
+}
+
+.actions .btn-edit:hover {
+  background: #fff7e7;
 }
 
 .actions .btn-delete:hover {

@@ -252,14 +252,38 @@ export const modelsApi = {
 
 // ========== NEW APIS FOR NEW DATABASE STRUCTURE ==========
 
+export interface StationTimelineEntry {
+  stationID: string;
+  stationName?: string;
+  startTime: string;
+  endTime?: string;
+}
+
 export interface ProductionStatus {
   id: string;
   modelID: string;
   vehicleID: string;
   productionDate: string;
-  stationStart?: string;
-  stationEnd?: string;
+  stationTimeline: StationTimelineEntry[];
   quality?: 'OK' | 'NG';
+  remark?: string;
+}
+
+export interface CreateProductionStatusDto {
+  modelID: string;
+  vehicleID: string;
+  productionDate: string;
+  remark?: string;
+}
+
+export interface UpdateStationTimelineDto {
+  stationID: string;
+  stationName?: string;
+  startTime?: string;
+}
+
+export interface UpdateQualityDto {
+  quality: 'OK' | 'NG';
   remark?: string;
 }
 
@@ -294,13 +318,23 @@ export const productionStatusApi = {
     return response.data;
   },
 
-  create: async (data: Omit<ProductionStatus, 'id'>): Promise<ProductionStatus> => {
+  create: async (data: CreateProductionStatusDto): Promise<ProductionStatus> => {
     const response = await api.post('/production-status', data);
     return response.data;
   },
 
-  update: async (id: string, data: Partial<ProductionStatus>): Promise<ProductionStatus> => {
+  update: async (id: string, data: Partial<CreateProductionStatusDto>): Promise<ProductionStatus> => {
     const response = await api.patch(`/production-status/${id}`, data);
+    return response.data;
+  },
+
+  addStation: async (id: string, data: UpdateStationTimelineDto): Promise<ProductionStatus> => {
+    const response = await api.post(`/production-status/${id}/station`, data);
+    return response.data;
+  },
+
+  updateQuality: async (id: string, data: UpdateQualityDto): Promise<ProductionStatus> => {
+    const response = await api.post(`/production-status/${id}/quality`, data);
     return response.data;
   },
 

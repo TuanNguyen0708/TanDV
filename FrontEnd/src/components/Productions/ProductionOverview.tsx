@@ -72,19 +72,28 @@ export function ProductionOverview() {
     return `${hours}:${minutes}`;
   };
 
-  const formatStationTime = (productionStatus: ProductionStatus): string => {
-    const hasStart = !!productionStatus.stationStart;
-    const hasEnd = !!productionStatus.stationEnd;
+  const getStationTimelineEntry = (productionStatus: ProductionStatus, stationID: string) => {
+    if (!productionStatus.stationTimeline || productionStatus.stationTimeline.length === 0) {
+      return null;
+    }
+    return productionStatus.stationTimeline.find(entry => entry.stationID === stationID);
+  };
 
-    if (!hasStart && !hasEnd) return '...';
+  const formatStationTime = (timelineEntry: any): string => {
+    if (!timelineEntry) return '...';
+
+    const hasStart = !!timelineEntry.startTime;
+    const hasEnd = !!timelineEntry.endTime;
+
+    if (!hasStart) return '...';
     if (hasStart && !hasEnd) {
-      return `${formatTime(productionStatus.stationStart)} – ...`;
+      return `${formatTime(timelineEntry.startTime)} – ...`;
     }
     if (hasStart && hasEnd) {
-      const start = new Date(productionStatus.stationStart!);
-      const end = new Date(productionStatus.stationEnd!);
+      const start = new Date(timelineEntry.startTime);
+      const end = new Date(timelineEntry.endTime);
       const minutes = Math.round((end.getTime() - start.getTime()) / 60000);
-      return `${formatTime(productionStatus.stationStart)} – ${formatTime(productionStatus.stationEnd)} (${minutes}')`;
+      return `${formatTime(timelineEntry.startTime)} – ${formatTime(timelineEntry.endTime)} (${minutes}')`;
     }
     return '...';
   };
@@ -188,26 +197,29 @@ export function ProductionOverview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {productionStatuses.length === 0 ? (
-                    <tr>
-                      <td colSpan={4 + stations.filter(s => s.isActive).length} className="no-data">
-                        Không có dữ liệu
-                      </td>
-                    </tr>
-                  ) : (
-                    productionStatuses
-                      .filter(ps => ps.productionDate === date)
-                      .map((productionStatus) => (
+                  {(() => {
+                    const filteredStatuses = productionStatuses.filter(ps => ps.productionDate === date);
+                    return filteredStatuses.length === 0 ? (
+                      <tr>
+                        <td colSpan={4 + stations.filter(s => s.isActive).length} className="no-data">
+                          Không có dữ liệu
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredStatuses.map((productionStatus) => (
                         <tr key={productionStatus.id}>
                           <td className="vehicle-id-cell">{productionStatus.vehicleID}</td>
                           <td>{productionStatus.modelID}</td>
                           {stations
                             .filter(station => station.isActive)
-                            .map((station, index) => (
-                              <td key={station.id}>
-                                {index === 0 ? formatStationTime(productionStatus) : '...'}
-                              </td>
-                            ))
+                            .map((station) => {
+                              const timelineEntry = getStationTimelineEntry(productionStatus, station.id);
+                              return (
+                                <td key={station.id}>
+                                  {formatStationTime(timelineEntry)}
+                                </td>
+                              );
+                            })
                           }
                           <td>
                             {productionStatus.quality ? (
@@ -221,7 +233,8 @@ export function ProductionOverview() {
                           <td>{productionStatus.remark || <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>}</td>
                         </tr>
                       ))
-                  )}
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>

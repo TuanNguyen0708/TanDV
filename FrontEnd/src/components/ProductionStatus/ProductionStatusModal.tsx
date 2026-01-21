@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './DatePickerStyles.css';
-import { ProductionStatus, Model, modelsApi } from '../../services/api';
+import { ProductionStatus, Model, modelsApi, CreateProductionStatusDto } from '../../services/api';
 
 interface ProductionStatusModalProps {
   status: ProductionStatus | null;
   onClose: () => void;
-  onSubmit: (data: Omit<ProductionStatus, 'id'>) => void;
+  onSubmit: (data: CreateProductionStatusDto) => void;
 }
 
 export function ProductionStatusModal({
@@ -19,9 +19,6 @@ export function ProductionStatusModal({
     modelID: '',
     vehicleID: '',
     productionDate: null as Date | null,
-    stationStart: null as Date | null,
-    stationEnd: null as Date | null,
-    quality: '' as '' | 'OK' | 'NG',
     remark: '',
   });
 
@@ -52,9 +49,6 @@ export function ProductionStatusModal({
         modelID: status.modelID,
         vehicleID: status.vehicleID,
         productionDate: status.productionDate ? new Date(status.productionDate) : null,
-        stationStart: status.stationStart ? new Date(status.stationStart) : null,
-        stationEnd: status.stationEnd ? new Date(status.stationEnd) : null,
-        quality: status.quality || '',
         remark: status.remark || '',
       });
     }
@@ -75,15 +69,6 @@ export function ProductionStatusModal({
       newErrors.productionDate = 'Ngày sản xuất là bắt buộc';
     }
 
-    // Validate station start/end times
-    if (formData.stationStart && formData.stationEnd) {
-      const start = formData.stationStart.getTime();
-      const end = formData.stationEnd.getTime();
-      if (end <= start) {
-        newErrors.stationEnd = 'Giờ kết thúc phải sau giờ bắt đầu';
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,19 +80,12 @@ export function ProductionStatusModal({
       return;
     }
 
-    const submitData: Omit<ProductionStatus, 'id'> = {
+    const submitData: CreateProductionStatusDto = {
       modelID: formData.modelID.trim(),
       vehicleID: formData.vehicleID.trim(),
       productionDate: formData.productionDate
         ? formData.productionDate.toISOString().split('T')[0]
         : '',
-      stationStart: formData.stationStart
-        ? formData.stationStart.toISOString()
-        : undefined,
-      stationEnd: formData.stationEnd
-        ? formData.stationEnd.toISOString()
-        : undefined,
-      quality: formData.quality || undefined,
       remark: formData.remark.trim() || undefined,
     };
 
@@ -149,6 +127,7 @@ export function ProductionStatusModal({
                   onChange={handleChange}
                   className={errors.vehicleID ? 'error' : ''}
                   placeholder="Nhập số xe"
+                  disabled={!!status}
                 />
                 {errors.vehicleID && (
                   <span className="error-text">{errors.vehicleID}</span>
@@ -200,61 +179,6 @@ export function ProductionStatusModal({
               {errors.productionDate && (
                 <span className="error-text">{errors.productionDate}</span>
               )}
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="stationStart">Giờ bắt đầu</label>
-                <DatePicker
-                  selected={formData.stationStart}
-                  onChange={(date) => {
-                    setFormData((prev) => ({ ...prev, stationStart: date }));
-                  }}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="dd/MM/yyyy HH:mm"
-                  placeholderText="Chọn ngày và giờ bắt đầu"
-                  id="stationStart"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="stationEnd">Giờ kết thúc</label>
-                <DatePicker
-                  selected={formData.stationEnd}
-                  onChange={(date) => {
-                    setFormData((prev) => ({ ...prev, stationEnd: date }));
-                    if (errors.stationEnd) {
-                      setErrors((prev) => ({ ...prev, stationEnd: '' }));
-                    }
-                  }}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="dd/MM/yyyy HH:mm"
-                  placeholderText="Chọn ngày và giờ kết thúc"
-                  className={errors.stationEnd ? 'error' : ''}
-                  id="stationEnd"
-                />
-                {errors.stationEnd && (
-                  <span className="error-text">{errors.stationEnd}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="quality">Chất lượng</label>
-              <select
-                id="quality"
-                name="quality"
-                value={formData.quality}
-                onChange={handleChange}
-              >
-                <option value="">-- Chọn --</option>
-                <option value="OK">OK</option>
-                <option value="NG">NG</option>
-              </select>
             </div>
 
             <div className="form-group">

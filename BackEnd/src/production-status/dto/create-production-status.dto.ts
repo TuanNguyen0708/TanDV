@@ -1,4 +1,4 @@
-import { IsString, IsDateString, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsDateString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductionStatusDto {
@@ -6,7 +6,7 @@ export class CreateProductionStatusDto {
   @IsString()
   modelID: string;
 
-  @ApiProperty({ description: 'Số xe', example: 'VEH-2024-001' })
+  @ApiProperty({ description: 'Số xe (unique)', example: 'VEH-2024-001' })
   @IsString()
   vehicleID: string;
 
@@ -14,22 +14,7 @@ export class CreateProductionStatusDto {
   @IsDateString()
   productionDate: Date;
 
-  @ApiPropertyOptional({ description: 'Thời gian bắt đầu station', example: '2024-01-20T08:00:00Z' })
-  @IsOptional()
-  @IsDateString()
-  stationStart?: Date;
-
-  @ApiPropertyOptional({ description: 'Thời gian kết thúc station', example: '2024-01-20T10:00:00Z' })
-  @IsOptional()
-  @IsDateString()
-  stationEnd?: Date;
-
-  @ApiPropertyOptional({ description: 'Chất lượng sản phẩm', enum: ['OK', 'NG'] })
-  @IsOptional()
-  @IsEnum(['OK', 'NG'])
-  quality?: string;
-
-  @ApiPropertyOptional({ description: 'Ghi chú', example: 'Đã kiểm tra chất lượng' })
+  @ApiPropertyOptional({ description: 'Ghi chú', example: 'Ghi chú khi tạo mới' })
   @IsOptional()
   @IsString()
   remark?: string;

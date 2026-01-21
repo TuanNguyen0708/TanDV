@@ -1,5 +1,12 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
+export interface StationTimelineEntry {
+  stationID: string;
+  stationName?: string;
+  startTime: Date;
+  endTime?: Date;
+}
+
 @Entity('production_status')
 export class ProductionStatus {
   @PrimaryGeneratedColumn('uuid')
@@ -8,17 +15,14 @@ export class ProductionStatus {
   @Column()
   modelID: string;
 
-  @Column()
+  @Column({ unique: true })
   vehicleID: string;
 
   @Column({ type: 'date' })
   productionDate: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  stationStart: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  stationEnd: Date;
+  @Column({ type: 'jsonb', default: '[]' })
+  stationTimeline: StationTimelineEntry[];
 
   @Column({ type: 'enum', enum: ['OK', 'NG'], nullable: true })
   quality: string;

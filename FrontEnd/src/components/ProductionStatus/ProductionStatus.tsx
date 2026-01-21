@@ -5,6 +5,7 @@ import {
 } from '../../services/api';
 import { ProductionStatusModal } from './ProductionStatusModal';
 import { DeleteProductionStatusModal } from './DeleteProductionStatusModal';
+import { UpdateStationModal } from './UpdateStationModal';
 import './ProductionStatus.css';
 
 export function ProductionStatusPage() {
@@ -13,6 +14,7 @@ export function ProductionStatusPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isUpdateStationModalOpen, setIsUpdateStationModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<ProductionStatus | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterQuality, setFilterQuality] = useState<'ALL' | 'OK' | 'NG'>('ALL');
@@ -50,7 +52,12 @@ export function ProductionStatusPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleSubmit = async (data: Omit<ProductionStatus, 'id'>) => {
+  const handleUpdateStation = (status: ProductionStatus) => {
+    setSelectedStatus(status);
+    setIsUpdateStationModalOpen(true);
+  };
+
+  const handleSubmit = async (data: any) => {
     try {
       if (selectedStatus) {
         await productionStatusApi.update(selectedStatus.id, data);
@@ -60,7 +67,8 @@ export function ProductionStatusPage() {
       setIsModalOpen(false);
       fetchProductionStatuses();
     } catch (err: any) {
-      alert(err?.message || 'Lỗi khi lưu dữ liệu');
+      const errorMessage = err?.response?.data?.message || err?.message || 'Lỗi khi lưu dữ liệu';
+      alert(errorMessage);
     }
   };
 
@@ -75,29 +83,42 @@ export function ProductionStatusPage() {
     }
   };
 
-  const formatDateTime = (dateTimeString?: string): string => {
-    if (!dateTimeString) return '-';
-    const date = new Date(dateTimeString);
-    return date.toLocaleString('vi-VN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
   };
 
-  const calculateDuration = (start?: string, end?: string): string => {
-    if (!start || !end) return '-';
-    const startTime = new Date(start).getTime();
-    const endTime = new Date(end).getTime();
+  const getStationInfo = (status: ProductionStatus): string => {
+    if (!status.stationTimeline || status.stationTimeline.length === 0) {
+      return 'Chưa bắt đầu';
+    }
+    const currentStation = status.stationTimeline[status.stationTimeline.length - 1];
+    if (currentStation.endTime) {
+      return `Hoàn thành (${status.stationTimeline.length} trạm)`;
+    }
+    return `${currentStation.stationName || 'Trạm'} (${status.stationTimeline.length}/${status.stationTimeline.length})`;
+  };
+
+  const getTotalDuration = (status: ProductionStatus): string => {
+    if (!status.stationTimeline || status.stationTimeline.length === 0) {
+      return '-';
+    }
+    const firstStation = status.stationTimeline[0];
+    const lastStation = status.stationTimeline[status.stationTimeline.length - 1];
+    
+    if (!firstStation.startTime) return '-';
+    
+    const endTime = lastStation.endTime 
+      ? new Date(lastStation.endTime).getTime()
+      : new Date().getTime();
+    
+    const startTime = new Date(firstStation.startTime).getTime();
     const minutes = Math.round((endTime - startTime) / 60000);
-    return `${minutes} phút`;
+    
+    if (minutes < 60) return `${minutes} phút`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
   };
 
   // Filter logic
@@ -159,9 +180,8 @@ export function ProductionStatusPage() {
                 <th>Số xe</th>
                 <th>Model</th>
                 <th>Ngày sản xuất</th>
-                <th>Giờ bắt đầu</th>
-                <th>Giờ kết thúc</th>
-                <th>Thời gian</th>
+                <th>Trạng thái / Trạm</th>
+                <th>Tổng thời gian</th>
                 <th>Chất lượng</th>
                 <th>Ghi chú</th>
                 <th>Thao tác</th>
@@ -170,7 +190,7 @@ export function ProductionStatusPage() {
             <tbody>
               {filteredStatuses.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="no-data">
+                  <td colSpan={8} className="no-data">
                     Không có dữ liệu
                   </td>
                 </tr>
@@ -180,9 +200,8 @@ export function ProductionStatusPage() {
                     <td className="vehicle-id">{status.vehicleID}</td>
                     <td>{status.modelID}</td>
                     <td>{formatDate(status.productionDate)}</td>
-                    <td>{formatDateTime(status.stationStart)}</td>
-                    <td>{formatDateTime(status.stationEnd)}</td>
-                    <td>{calculateDuration(status.stationStart, status.stationEnd)}</td>
+                    <td>{getStationInfo(status)}</td>
+                    <td>{getTotalDuration(status)}</td>
                     <td>
                       {status.quality ? (
                         <span className={`quality-badge quality-${status.quality.toLowerCase()}`}>
@@ -195,9 +214,16 @@ export function ProductionStatusPage() {
                     <td className="remark">{status.remark || '-'}</td>
                     <td className="actions">
                       <button
+                        className="btn btn-station"
+                        onClick={() => handleUpdateStation(status)}
+                        title="Cập nhật trạm"
+                      >
+                        🏭
+                      </button>
+                      <button
                         className="btn btn-edit"
                         onClick={() => handleEdit(status)}
-                        title="Sửa"
+                        title="Sửa thông tin"
                       >
                         ✏️
                       </button>
@@ -231,6 +257,14 @@ export function ProductionStatusPage() {
           status={selectedStatus}
           onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleConfirmDelete}
+        />
+      )}
+
+      {isUpdateStationModalOpen && selectedStatus && (
+        <UpdateStationModal
+          status={selectedStatus}
+          onClose={() => setIsUpdateStationModalOpen(false)}
+          onSuccess={fetchProductionStatuses}
         />
       )}
     </div>
