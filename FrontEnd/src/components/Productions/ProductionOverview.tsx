@@ -58,7 +58,7 @@ export function ProductionOverview() {
   useEffect(() => {
     fetchAllData().then();
     // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchAllData, 30000);
+    const interval = setInterval(fetchAllData, 10000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 
