@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../ProductionStatus/DatePickerStyles.css';
 import { StationDailyStatus, Station } from '../../services/api';
+import { formatLocalDate } from '../../utils/dateUtils';
 
 interface StationDailyModalProps {
   status: StationDailyStatus | null;
@@ -91,7 +92,7 @@ export function StationDailyModal({
     const submitData: Omit<StationDailyStatus, 'id'> = {
       stationID: formData.stationID,
       statusDate: formData.statusDate
-        ? formData.statusDate.toISOString().split('T')[0]
+        ? formatLocalDate(formData.statusDate)
         : '',
       startTime: formatTimeOnly(formData.startTime),
       stopTime: formatTimeOnly(formData.stopTime),

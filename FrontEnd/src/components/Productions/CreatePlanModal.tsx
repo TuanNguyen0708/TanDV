@@ -1,5 +1,9 @@
 import { useState, useEffect, FormEvent } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../ProductionStatus/DatePickerStyles.css';
 import { modelsApi, Model } from '../../services/api';
+import { formatLocalDate } from '../../utils/dateUtils';
 import './CreatePlanModal.css';
 
 interface CreateMonthPlanModalProps {
@@ -17,14 +21,9 @@ export function CreateMonthPlanModal({
   loading = false,
   initialData,
 }: CreateMonthPlanModalProps) {
-  const getDefaultMonth = () => {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  };
-
   const [formData, setFormData] = useState({
     model: '',
-    month: getDefaultMonth(),
+    month: null as Date | null,
     plannedMonth: '',
   });
 
@@ -54,16 +53,18 @@ export function CreateMonthPlanModal({
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
+        // Parse month string YYYY-MM to Date (first day of month)
+        const [year, month] = initialData.month.split('-').map(Number);
+        const monthDate = new Date(year, month - 1, 1);
         setFormData({
           model: initialData.model,
-          month: initialData.month,
+          month: monthDate,
           plannedMonth: initialData.plannedMonth.toString(),
         });
       } else {
-        const defaultMonth = getDefaultMonth();
         setFormData({
           model: '',
-          month: defaultMonth,
+          month: new Date(), // Default to current month
           plannedMonth: '',
         });
       }
@@ -81,10 +82,8 @@ export function CreateMonthPlanModal({
       newErrors.model = 'Vui lòng nhập loại xe';
     }
 
-    if (!formData.month.trim()) {
+    if (!formData.month) {
       newErrors.month = 'Vui lòng chọn tháng';
-    } else if (!/^\d{4}-\d{2}$/.test(formData.month)) {
-      newErrors.month = 'Định dạng tháng không hợp lệ (YYYY-MM)';
     }
 
     if (!formData.plannedMonth.trim()) {
@@ -101,16 +100,21 @@ export function CreateMonthPlanModal({
       return;
     }
 
+    // Format month as YYYY-MM
+    const monthStr = formData.month 
+      ? `${formData.month.getFullYear()}-${String(formData.month.getMonth() + 1).padStart(2, '0')}`
+      : '';
+
     onSubmit({
       model: formData.model.trim(),
-      month: formData.month,
+      month: monthStr,
       plannedMonth: parseInt(formData.plannedMonth, 10),
     });
   };
 
   const handleClose = () => {
     if (!loading) {
-      setFormData({ model: '', month: getDefaultMonth(), plannedMonth: '' });
+      setFormData({ model: '', month: new Date(), plannedMonth: '' });
       setErrors({});
       onClose();
     }
@@ -154,14 +158,17 @@ export function CreateMonthPlanModal({
 
           <div className="form-group">
             <label htmlFor="month">Tháng *</label>
-            <input
+            <DatePicker
               id="month"
-              type="month"
-              value={formData.month}
-              onChange={(e) => {
-                setFormData({ ...formData, month: e.target.value });
+              selected={formData.month}
+              onChange={(date) => {
+                setFormData({ ...formData, month: date });
                 if (errors.month) setErrors({ ...errors, month: '' });
               }}
+              dateFormat="MM/yyyy"
+              showMonthYearPicker
+              placeholderText="Chọn tháng"
+              className={errors.month ? 'error' : ''}
               disabled={loading}
             />
             {errors.month && <span className="form-error">{errors.month}</span>}
@@ -232,7 +239,7 @@ export function CreateDayPlanModal({
 }: CreateDayPlanModalProps) {
   const [formData, setFormData] = useState({
     model: defaultModel || '',
-    date: defaultDate || '',
+    date: null as Date | null,
     plannedDay: '',
     monthPlanId: '',
   });
@@ -266,9 +273,12 @@ export function CreateDayPlanModal({
         ? monthPlans.find(mp => mp.model === defaultModel)?.id || ''
         : '';
       
+      // Parse defaultDate string to Date if available
+      const dateObj = defaultDate ? new Date(defaultDate) : null;
+      
       setFormData({
         model: defaultModel || '',
-        date: defaultDate || '',
+        date: dateObj,
         plannedDay: initialPlannedDay != null ? initialPlannedDay.toString() : '',
         monthPlanId: initialMonthPlanId,
       });
@@ -298,10 +308,8 @@ export function CreateDayPlanModal({
       newErrors.model = 'Vui lòng chọn loại xe';
     }
 
-    if (!formData.date.trim()) {
+    if (!formData.date) {
       newErrors.date = 'Vui lòng chọn ngày';
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.date)) {
-      newErrors.date = 'Định dạng ngày không hợp lệ (YYYY-MM-DD)';
     }
 
     if (!formData.plannedDay.trim()) {
@@ -324,7 +332,7 @@ export function CreateDayPlanModal({
 
     onSubmit({
       model: formData.model.trim(),
-      date: formData.date,
+      date: formData.date ? formatLocalDate(formData.date) : '',
       plannedDay: parseInt(formData.plannedDay, 10),
       monthPlanId: formData.monthPlanId,
     });
@@ -332,7 +340,8 @@ export function CreateDayPlanModal({
 
   const handleClose = () => {
     if (!loading) {
-      setFormData({ model: defaultModel || '', date: defaultDate || '', plannedDay: '', monthPlanId: '' });
+      const dateObj = defaultDate ? new Date(defaultDate) : null;
+      setFormData({ model: defaultModel || '', date: dateObj, plannedDay: '', monthPlanId: '' });
       setErrors({});
       onClose();
     }
@@ -376,14 +385,16 @@ export function CreateDayPlanModal({
 
           <div className="form-group">
             <label htmlFor="day-date">Ngày *</label>
-            <input
+            <DatePicker
               id="day-date"
-              type="date"
-              value={formData.date}
-              onChange={(e) => {
-                setFormData({ ...formData, date: e.target.value });
+              selected={formData.date}
+              onChange={(date) => {
+                setFormData({ ...formData, date: date });
                 if (errors.date) setErrors({ ...errors, date: '' });
               }}
+              dateFormat="dd/MM/yyyy"
+              placeholderText="Chọn ngày"
+              className={errors.date ? 'error' : ''}
               disabled={loading}
             />
             {errors.date && <span className="form-error">{errors.date}</span>}
@@ -404,8 +415,9 @@ export function CreateDayPlanModal({
               {monthPlans
                 .filter(mp => mp.model === formData.model)
                 .map((monthPlan) => {
-                  const monthDate = new Date(monthPlan.planMonth);
-                  const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+                  // Parse planMonth string (YYYY-MM-DD) to get year and month
+                  const [year, month] = monthPlan.planMonth.split('-').map(Number);
+                  const monthStr = `${year}-${String(month).padStart(2, '0')}`;
                   return (
                     <option key={monthPlan.id} value={monthPlan.id}>
                       {monthStr} - KH: {new Intl.NumberFormat('vi-VN').format(monthPlan.plannedMonth)}

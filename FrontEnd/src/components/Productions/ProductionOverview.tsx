@@ -10,13 +10,11 @@ import {
   SummaryResponse
 } from '../../services/api';
 import { ProductionPlanTable } from './ProductionPlanTable';
+import { getTodayLocalDate } from '../../utils/dateUtils';
 import './ProductionOverview.css';
 
 export function ProductionOverview() {
-  const [date] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [date] = useState(() => getTodayLocalDate());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [productionStatuses, setProductionStatuses] = useState<ProductionStatus[]>([]);

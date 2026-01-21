@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './DatePickerStyles.css';
 import { ProductionStatus, Model, modelsApi, CreateProductionStatusDto } from '../../services/api';
+import { formatLocalDate } from '../../utils/dateUtils';
 
 interface ProductionStatusModalProps {
   status: ProductionStatus | null;
@@ -84,7 +85,7 @@ export function ProductionStatusModal({
       modelID: formData.modelID.trim(),
       vehicleID: formData.vehicleID.trim(),
       productionDate: formData.productionDate
-        ? formData.productionDate.toISOString().split('T')[0]
+        ? formatLocalDate(formData.productionDate)
         : '',
       remark: formData.remark.trim() || undefined,
     };

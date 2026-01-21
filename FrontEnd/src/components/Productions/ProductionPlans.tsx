@@ -8,13 +8,11 @@ import {
 import { ProductionPlanTable } from './ProductionPlanTable';
 import { CreateMonthPlanModal, CreateDayPlanModal } from './CreatePlanModal';
 import { DeletePlanModal } from './DeletePlanModal';
+import { getTodayLocalDate } from '../../utils/dateUtils';
 import './ProductionPlans.css';
 
 export function ProductionPlans() {
-  const [date] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  const [date] = useState(() => getTodayLocalDate());
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -285,8 +283,8 @@ export function ProductionPlans() {
                       };
 
                     // Format planMonth from YYYY-MM-DD to YYYY-MM
-                    const monthDate = new Date(row.planMonth);
-                    const monthStr = `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`;
+                    const [year, month] = row.planMonth.split('-').map(Number);
+                    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
 
                     return (
                       <tr key={index}>
