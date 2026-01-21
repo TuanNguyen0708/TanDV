@@ -237,6 +237,13 @@
   margin-top: 0.5rem;
 }
 
+.overview-station-downtime {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  opacity: 0.95;
+}
+
 /* Status Colors */
 .overview-status-running {
   background: linear-gradient(135deg, #2d5016 0%, #1a3009 100%);

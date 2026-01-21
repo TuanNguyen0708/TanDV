@@ -69,10 +69,10 @@ export function StationModal({
 
     onSubmit({
       stationName: formData.stationName.trim(),
-      description: formData.description.trim() || undefined,
+      description: formData.description.trim() || "",
       isActive: formData.isActive,
       currentStatusCode: formData.currentStatusCode,
-      currentStatusBrief: formData.currentStatusBrief.trim() || undefined,
+      currentStatusBrief: formData.currentStatusBrief.trim() || "",
     });
   };
 

@@ -5,6 +5,8 @@ import {
   ProductionStatus,
   Station,
   stationsApi,
+  stationDailyStatusApi,
+  StationDailyStatus,
   SummaryResponse
 } from '../../services/api';
 import { ProductionPlanTable } from './ProductionPlanTable';
@@ -19,6 +21,7 @@ export function ProductionOverview() {
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [productionStatuses, setProductionStatuses] = useState<ProductionStatus[]>([]);
   const [stations, setStations] = useState<Station[]>([]);
+  const [stationDailyStatuses, setStationDailyStatuses] = useState<StationDailyStatus[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,15 +38,17 @@ export function ProductionOverview() {
     setError(null);
     try {
       // Fetch all data in parallel using NEW APIs
-      const [summaryData, productionStatusData, stationsData] = await Promise.all([
+      const [summaryData, productionStatusData, stationsData, stationDailyData] = await Promise.all([
         productionPlansApi.getDailySummary(date),
         productionStatusApi.getAll(),
         stationsApi.getAllStations(),
+        stationDailyStatusApi.getAll(),
       ]);
 
       setSummary(summaryData);
       setProductionStatuses(productionStatusData || []);
       setStations(stationsData || []);
+      setStationDailyStatuses(stationDailyData || []);
     } catch (err: any) {
       console.error('Error fetching data:', err);
       setError(err?.message || 'Lỗi khi tải dữ liệu');
@@ -120,6 +125,19 @@ export function ProductionOverview() {
           className: 'overview-status-idle',
         };
     }
+  };
+
+  const getStationDailyStatus = (stationID: string): StationDailyStatus | undefined => {
+    return stationDailyStatuses.find(
+      (sds) => sds.stationID === stationID && sds.statusDate === date
+    );
+  };
+
+  const formatDowntime = (minutes?: number): string => {
+    if (!minutes) return '0 phút';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins} phút`;
   };
 
   return (
@@ -226,6 +244,7 @@ export function ProductionOverview() {
                 .filter(station => station.isActive)
                 .map((station, index) => {
                   const statusInfo = getStatusInfo(station.currentStatusCode);
+                  const dailyStatus = getStationDailyStatus(station.id);
                   return (
                     <div
                       key={station.id}
@@ -237,6 +256,11 @@ export function ProductionOverview() {
                       <div className="overview-station-status">{statusInfo.label}</div>
                       {station.currentStatusBrief && (
                         <div className="overview-station-reason">{station.currentStatusBrief}</div>
+                      )}
+                      {dailyStatus && dailyStatus.totalDowntime !== undefined && (
+                        <div className="overview-station-downtime">
+                          Downtime: {formatDowntime(dailyStatus.totalDowntime)}
+                        </div>
                       )}
                     </div>
                   );
