@@ -48,10 +48,23 @@ Tạo file `.env` hoặc cấu hình trong `src/database/database.module.ts`:
 CREATE DATABASE production_management;
 ```
 
-Hoặc tạo bảng thủ công:
-```sql
--- Xem cấu trúc bảng trong phần Database Schema bên dưới
+5. **Seed dữ liệu mẫu (tùy chọn)**
+
+Chạy script seed để tạo dữ liệu mẫu cho tất cả các bảng (mỗi bảng 3-5 records):
+```bash
+npm run seed
 ```
+
+Script sẽ tạo:
+- 4 models (KL199, KL250, KL300, BUS01)
+- 5 stations (Trạm hàn khung, Trạm sơn, Trạm lắp ráp động cơ, Trạm lắp ráp nội thất, Trạm kiểm tra cuối)
+- 3 production month plans
+- 8 production daily plans
+- 5 production status records
+- 9 station daily status records
+- 3-6 station downtime logs
+
+**Lưu ý**: Script seed sẽ không tạo bản ghi trùng lặp nếu dữ liệu đã tồn tại.
 
 ## 🏃 Chạy ứng dụng
 
@@ -308,6 +321,7 @@ npm run test:cov
 - `npm run dev` - Chạy development mode với hot reload
 - `npm run build` - Build production
 - `npm run start:prod` - Chạy production
+- `npm run seed` - Seed dữ liệu mẫu vào database
 - `npm run lint` - Lint code
 - `npm run format` - Format code với Prettier
 
