@@ -282,9 +282,9 @@ export function ProductionPlans() {
                         cumulative: cumulativeValue,
                       };
 
-                    // Format planMonth from YYYY-MM-DD to YYYY-MM
+                    // Format planMonth from YYYY-MM-DD to MM/YYYY
                     const [year, month] = row.planMonth.split('-').map(Number);
-                    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+                    const monthStr = `${String(month).padStart(2, '0')}/${year}`;
 
                     return (
                       <tr key={index}>
@@ -388,7 +388,7 @@ export function ProductionPlans() {
                 <tbody>
                   {dailyPlans.map((row, index) => (
                     <tr key={index}>
-                      <td>{row.workDate}</td>
+                      <td>{new Date(row.workDate).toLocaleDateString('vi-VN')}</td>
                       <td>{row.model}</td>
                       <td>{formatNumber(row.plannedDay)}</td>
                       <td>{formatNumber(row.actualDay)}</td>
