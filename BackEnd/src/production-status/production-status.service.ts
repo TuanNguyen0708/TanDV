@@ -205,6 +205,63 @@ export class ProductionStatusService {
 
   async remove(id: string): Promise<void> {
     const productionStatus = await this.findOne(id);
+
+    // Decrement count in production plan if quality was set
+    if (productionStatus.quality) {
+      await this.decrementProductionPlanCount(
+        productionStatus.modelID,
+        productionStatus.productionDate,
+      );
+    }
+
     await this.productionStatusRepository.remove(productionStatus);
+  }
+
+  private async decrementProductionPlanCount(
+    modelID: string,
+    productionDate: Date | string,
+  ): Promise<void> {
+    try {
+      // Convert Date to string format YYYY-MM-DD for workDate comparison
+      let workDate: string;
+      if (productionDate instanceof Date) {
+        workDate = productionDate.toISOString().split('T')[0];
+      } else {
+        workDate = String(productionDate).split('T')[0];
+      }
+
+      // Find the daily plan for this model and date
+      const dailyPlan = await this.productionDailyPlansRepository.findOne({
+        where: {
+          model: modelID,
+          workDate: workDate,
+        },
+        relations: ['monthPlan'],
+      });
+
+      console.log(dailyPlan, 'dailyPlan found for decrementing count');
+
+      if (dailyPlan) {
+        // Decrement actualDay by 1 (but not below 0)
+        dailyPlan.actualDay = Math.max((dailyPlan.actualDay || 0) - 1, 0);
+        await this.productionDailyPlansRepository.save(dailyPlan);
+
+        // Also decrement cumulative in month plan
+        if (dailyPlan.monthPlan) {
+          const monthPlan = await this.productionMonthPlanRepository.findOne({
+            where: { id: dailyPlan.monthPlan.id },
+          });
+
+          if (monthPlan) {
+            console.log('decrementing month plan cumulative count');
+            monthPlan.cumulative = Math.max((monthPlan.cumulative || 0) - 1, 0);
+            await this.productionMonthPlanRepository.save(monthPlan);
+          }
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the main operation
+      console.error('Error decrementing production plan count:', error);
+    }
   }
 }
