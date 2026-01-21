@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductionStatus } from './entity/production-status.entity';
@@ -6,12 +10,18 @@ import { CreateProductionStatusDto } from './dto/create-production-status.dto';
 import { UpdateProductionStatusDto } from './dto/update-production-status.dto';
 import { UpdateStationTimelineDto } from './dto/update-station-timeline.dto';
 import { UpdateQualityDto } from './dto/update-quality.dto';
+import { ProductionDailyPlans } from '../production-plans/entity/production-daily-plans.entity';
+import { ProductionMonthPlan } from '../production-plans/entity/production-month-plans.entity';
 
 @Injectable()
 export class ProductionStatusService {
   constructor(
     @InjectRepository(ProductionStatus)
     private productionStatusRepository: Repository<ProductionStatus>,
+    @InjectRepository(ProductionDailyPlans)
+    private productionDailyPlansRepository: Repository<ProductionDailyPlans>,
+    @InjectRepository(ProductionMonthPlan)
+    private productionMonthPlanRepository: Repository<ProductionMonthPlan>,
   ) {}
 
   async create(
@@ -45,7 +55,9 @@ export class ProductionStatusService {
     });
 
     if (!productionStatus) {
-      throw new NotFoundException(`Production status với ID ${id} không tồn tại`);
+      throw new NotFoundException(
+        `Production status với ID ${id} không tồn tại`,
+      );
     }
 
     return productionStatus;
@@ -58,7 +70,10 @@ export class ProductionStatusService {
     const productionStatus = await this.findOne(id);
 
     // If updating vehicleID, check for uniqueness
-    if (updateDto.vehicleID && updateDto.vehicleID !== productionStatus.vehicleID) {
+    if (
+      updateDto.vehicleID &&
+      updateDto.vehicleID !== productionStatus.vehicleID
+    ) {
       const existing = await this.productionStatusRepository.findOne({
         where: { vehicleID: updateDto.vehicleID },
       });
@@ -81,7 +96,9 @@ export class ProductionStatusService {
     const productionStatus = await this.findOne(id);
 
     const timeline = productionStatus.stationTimeline || [];
-    const startTime = stationDto.startTime ? new Date(stationDto.startTime) : new Date();
+    const startTime = stationDto.startTime
+      ? new Date(stationDto.startTime)
+      : new Date();
 
     // If there's a previous station without endTime, set it to current startTime
     if (timeline.length > 0) {
@@ -127,7 +144,63 @@ export class ProductionStatusService {
       stationTimeline: timeline,
     });
 
+    // Update actualDay count in production plan if quality is set
+    if (qualityDto.quality) {
+      await this.updateProductionPlanCount(
+        productionStatus.modelID,
+        productionStatus.productionDate,
+      );
+    }
+
     return this.findOne(id);
+  }
+
+  private async updateProductionPlanCount(
+    modelID: string,
+    productionDate: Date | string,
+  ): Promise<void> {
+    try {
+      // Convert Date to string format YYYY-MM-DD for workDate comparison
+      let workDate: string;
+      if (productionDate instanceof Date) {
+        workDate = productionDate.toISOString().split('T')[0];
+      } else {
+        workDate = String(productionDate).split('T')[0];
+      }
+
+      // Find the daily plan for this model and date
+      const dailyPlan = await this.productionDailyPlansRepository.findOne({
+        where: {
+          model: modelID,
+          workDate: workDate,
+        },
+        relations: ['monthPlan'],
+      });
+
+      console.log(dailyPlan, 'dailyPlan found for updating count');
+
+      if (dailyPlan) {
+        // Increment actualDay by 1
+        dailyPlan.actualDay = (dailyPlan.actualDay || 0) + 1;
+        await this.productionDailyPlansRepository.save(dailyPlan);
+
+        // Also increment cumulative in month plan
+        if (dailyPlan.monthPlan) {
+          const monthPlan = await this.productionMonthPlanRepository.findOne({
+            where: { id: dailyPlan.monthPlan.id },
+          });
+
+          if (monthPlan) {
+            console.log('updating month plan cumulative count');
+            monthPlan.cumulative = (monthPlan.cumulative || 0) + 1;
+            await this.productionMonthPlanRepository.save(monthPlan);
+          }
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the main operation
+      console.error('Error updating production plan count:', error);
+    }
   }
 
   async remove(id: string): Promise<void> {

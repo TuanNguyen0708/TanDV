@@ -184,6 +184,7 @@ export function ProductionOverview() {
                   <tr>
                     <th>Mã số</th>
                     <th>Loại xe</th>
+                    <th>Ngày Sản Xuất</th>
                     {stations
                       .filter(station => station.isActive)
                       .map((station, index) => (
@@ -197,44 +198,48 @@ export function ProductionOverview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(() => {
-                    const filteredStatuses = productionStatuses.filter(ps => ps.productionDate === date);
-                    return filteredStatuses.length === 0 ? (
-                      <tr>
-                        <td colSpan={4 + stations.filter(s => s.isActive).length} className="no-data">
-                          Không có dữ liệu
+                  {productionStatuses.length === 0 ? (
+                    <tr>
+                      <td colSpan={5 + stations.filter(s => s.isActive).length} className="no-data">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  ) : (
+                    productionStatuses.map((productionStatus) => (
+                      <tr key={productionStatus.id}>
+                        <td className="vehicle-id-cell">{productionStatus.vehicleID}</td>
+                        <td>{productionStatus.modelID}</td>
+                        <td>
+                          {new Date(productionStatus.productionDate).toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
                         </td>
+                        {stations
+                          .filter(station => station.isActive)
+                          .map((station) => {
+                            const timelineEntry = getStationTimelineEntry(productionStatus, station.id);
+                            return (
+                              <td key={station.id}>
+                                {formatStationTime(timelineEntry)}
+                              </td>
+                            );
+                          })
+                        }
+                        <td>
+                          {productionStatus.quality ? (
+                            <span className={`quality-badge quality-${productionStatus.quality.toLowerCase()}`}>
+                              {productionStatus.quality}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>
+                          )}
+                        </td>
+                        <td>{productionStatus.remark || <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>}</td>
                       </tr>
-                    ) : (
-                      filteredStatuses.map((productionStatus) => (
-                        <tr key={productionStatus.id}>
-                          <td className="vehicle-id-cell">{productionStatus.vehicleID}</td>
-                          <td>{productionStatus.modelID}</td>
-                          {stations
-                            .filter(station => station.isActive)
-                            .map((station) => {
-                              const timelineEntry = getStationTimelineEntry(productionStatus, station.id);
-                              return (
-                                <td key={station.id}>
-                                  {formatStationTime(timelineEntry)}
-                                </td>
-                              );
-                            })
-                          }
-                          <td>
-                            {productionStatus.quality ? (
-                              <span className={`quality-badge quality-${productionStatus.quality.toLowerCase()}`}>
-                                {productionStatus.quality}
-                              </span>
-                            ) : (
-                              <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>
-                            )}
-                          </td>
-                          <td>{productionStatus.remark || <span style={{ color: '#fff', opacity: 0.5, fontStyle: 'italic' }}>-</span>}</td>
-                        </tr>
-                      ))
-                    );
-                  })()}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

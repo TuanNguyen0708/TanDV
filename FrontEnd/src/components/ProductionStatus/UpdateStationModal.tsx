@@ -26,11 +26,11 @@ export function UpdateStationModal({
   const [loadingStations, setLoadingStations] = useState(false);
   const [selectedStationID, setSelectedStationID] = useState('');
   const [startTime, setStartTime] = useState<Date | null>(new Date());
+  const [updateQuality, setUpdateQuality] = useState(false);
   const [quality, setQuality] = useState<'' | 'OK' | 'NG'>('');
   const [qualityRemark, setQualityRemark] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitting, setSubmitting] = useState(false);
-  const [actionType, setActionType] = useState<'station' | 'quality'>('station');
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -51,17 +51,15 @@ export function UpdateStationModal({
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
 
-    if (actionType === 'station') {
-      if (!selectedStationID) {
-        newErrors.stationID = 'Vui lòng chọn trạm';
-      }
-      if (!startTime) {
-        newErrors.startTime = 'Vui lòng chọn thời gian bắt đầu';
-      }
-    } else {
-      if (!quality) {
-        newErrors.quality = 'Vui lòng chọn chất lượng';
-      }
+    if (!selectedStationID) {
+      newErrors.stationID = 'Vui lòng chọn trạm';
+    }
+    if (!startTime) {
+      newErrors.startTime = 'Vui lòng chọn thời gian bắt đầu';
+    }
+    
+    if (updateQuality && !quality) {
+      newErrors.quality = 'Vui lòng chọn chất lượng';
     }
 
     setErrors(newErrors);
@@ -77,15 +75,18 @@ export function UpdateStationModal({
 
     setSubmitting(true);
     try {
-      if (actionType === 'station') {
-        const station = stations.find(s => s.id === selectedStationID);
-        const stationData: UpdateStationTimelineDto = {
-          stationID: selectedStationID,
-          stationName: station?.stationName,
-          startTime: startTime ? startTime.toISOString() : undefined,
-        };
-        await productionStatusApi.addStation(status.id, stationData);
-      } else {
+      // Thêm trạm mới
+      const station = stations.find(s => s.id === selectedStationID);
+      const stationData: UpdateStationTimelineDto = {
+        stationID: selectedStationID,
+        stationName: station?.stationName,
+        startTime: startTime ? startTime.toISOString() : undefined,
+      };
+      await productionStatusApi.addStation(status.id, stationData);
+
+      // Nếu cập nhật chất lượng, gọi API updateQuality
+      // Điều này sẽ set endTime cho trạm vừa thêm và cập nhật chất lượng
+      if (updateQuality) {
         const qualityData: UpdateQualityDto = {
           quality: quality as 'OK' | 'NG',
           remark: qualityRemark || undefined,
@@ -154,94 +155,88 @@ export function UpdateStationModal({
               )}
             </div>
 
-            {/* Action type selection */}
+            {/* Chọn trạm */}
             <div className="form-group" style={{ marginTop: '20px' }}>
-              <label>Hành động:</label>
-              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    value="station"
-                    checked={actionType === 'station'}
-                    onChange={(e) => setActionType(e.target.value as 'station' | 'quality')}
-                    style={{ marginRight: '6px' }}
-                  />
-                  Thêm trạm mới
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    value="quality"
-                    checked={actionType === 'quality'}
-                    onChange={(e) => setActionType(e.target.value as 'station' | 'quality')}
-                    style={{ marginRight: '6px' }}
-                  />
-                  Cập nhật chất lượng
-                </label>
-              </div>
+              <label htmlFor="stationID">
+                Chọn trạm <span className="required">*</span>
+              </label>
+              <select
+                id="stationID"
+                value={selectedStationID}
+                onChange={(e) => {
+                  setSelectedStationID(e.target.value);
+                  if (errors.stationID) {
+                    setErrors((prev) => ({ ...prev, stationID: '' }));
+                  }
+                }}
+                className={errors.stationID ? 'error' : ''}
+                disabled={loadingStations}
+              >
+                <option value="">-- Chọn trạm --</option>
+                {stations.map((station) => (
+                  <option key={station.id} value={station.id}>
+                    {station.stationName}
+                  </option>
+                ))}
+              </select>
+              {errors.stationID && (
+                <span className="error-text">{errors.stationID}</span>
+              )}
             </div>
 
-            {actionType === 'station' ? (
-              <>
-                <div className="form-group">
-                  <label htmlFor="stationID">
-                    Chọn trạm <span className="required">*</span>
-                  </label>
-                  <select
-                    id="stationID"
-                    value={selectedStationID}
-                    onChange={(e) => {
-                      setSelectedStationID(e.target.value);
-                      if (errors.stationID) {
-                        setErrors((prev) => ({ ...prev, stationID: '' }));
-                      }
-                    }}
-                    className={errors.stationID ? 'error' : ''}
-                    disabled={loadingStations}
-                  >
-                    <option value="">-- Chọn trạm --</option>
-                    {stations.map((station) => (
-                      <option key={station.id} value={station.id}>
-                        {station.stationName}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.stationID && (
-                    <span className="error-text">{errors.stationID}</span>
-                  )}
-                </div>
+            {/* Thời gian bắt đầu */}
+            <div className="form-group">
+              <label htmlFor="startTime">
+                Thời gian bắt đầu <span className="required">*</span>
+              </label>
+              <DatePicker
+                selected={startTime}
+                onChange={(date) => {
+                  setStartTime(date);
+                  if (errors.startTime) {
+                    setErrors((prev) => ({ ...prev, startTime: '' }));
+                  }
+                }}
+                showTimeSelect
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="dd/MM/yyyy HH:mm"
+                placeholderText="Chọn ngày và giờ bắt đầu"
+                className={errors.startTime ? 'error' : ''}
+                id="startTime"
+              />
+              {errors.startTime && (
+                <span className="error-text">{errors.startTime}</span>
+              )}
+              {hasUnfinishedStation && (
+                <small style={{ color: '#ff4d4f', display: 'block', marginTop: '4px' }}>
+                  Lưu ý: Trạm "{lastStation?.stationName}" sẽ được set endTime = startTime này
+                </small>
+              )}
+            </div>
 
-                <div className="form-group">
-                  <label htmlFor="startTime">
-                    Thời gian bắt đầu <span className="required">*</span>
-                  </label>
-                  <DatePicker
-                    selected={startTime}
-                    onChange={(date) => {
-                      setStartTime(date);
-                      if (errors.startTime) {
-                        setErrors((prev) => ({ ...prev, startTime: '' }));
-                      }
-                    }}
-                    showTimeSelect
-                    timeFormat="HH:mm"
-                    timeIntervals={15}
-                    dateFormat="dd/MM/yyyy HH:mm"
-                    placeholderText="Chọn ngày và giờ bắt đầu"
-                    className={errors.startTime ? 'error' : ''}
-                    id="startTime"
-                  />
-                  {errors.startTime && (
-                    <span className="error-text">{errors.startTime}</span>
-                  )}
-                  {hasUnfinishedStation && (
-                    <small style={{ color: '#ff4d4f', display: 'block', marginTop: '4px' }}>
-                      Lưu ý: Trạm "{lastStation?.stationName}" sẽ được set endTime = startTime này
-                    </small>
-                  )}
-                </div>
-              </>
-            ) : (
+            {/* Checkbox cập nhật chất lượng */}
+            <div className="form-group">
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={updateQuality}
+                  onChange={(e) => {
+                    setUpdateQuality(e.target.checked);
+                    if (!e.target.checked) {
+                      setQuality('');
+                      setQualityRemark('');
+                      setErrors((prev) => ({ ...prev, quality: '' }));
+                    }
+                  }}
+                  style={{ marginRight: '8px' }}
+                />
+                Cập nhật chất lượng (trạm này là trạm cuối cùng)
+              </label>
+            </div>
+
+            {/* Select chất lượng (hiện khi checkbox được tích) */}
+            {updateQuality && (
               <>
                 <div className="form-group">
                   <label htmlFor="quality">
@@ -258,7 +253,7 @@ export function UpdateStationModal({
                     }}
                     className={errors.quality ? 'error' : ''}
                   >
-                    <option value="">-- Chọn --</option>
+                    <option value="">-- Chọn chất lượng --</option>
                     <option value="OK">OK</option>
                     <option value="NG">NG</option>
                   </select>
@@ -277,12 +272,6 @@ export function UpdateStationModal({
                     placeholder="Nhập ghi chú..."
                   />
                 </div>
-
-                {hasUnfinishedStation && (
-                  <small style={{ color: '#ff4d4f', display: 'block' }}>
-                    Lưu ý: Trạm "{lastStation?.stationName}" sẽ được set endTime = thời gian hiện tại
-                  </small>
-                )}
               </>
             )}
           </div>

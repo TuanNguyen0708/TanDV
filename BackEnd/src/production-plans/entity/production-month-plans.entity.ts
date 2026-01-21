@@ -27,6 +27,9 @@ export class ProductionMonthPlan {
   @Column({ type: 'int', name: 'planned_month' })
   plannedMonth: number;
 
+  @Column({ type: 'int', name: 'cumulative', default: 0 })
+  cumulative: number;
+
   @OneToMany(() => ProductionDailyPlans, (dailyPlan) => dailyPlan.monthPlan)
   dailyPlans: ProductionDailyPlans[];
 

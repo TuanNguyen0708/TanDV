@@ -120,20 +120,12 @@ export class ProductionPlanService {
         d.planned_day                            AS "plannedDay",
         d.actual_day                             AS "actualDay",
         m.planned_month                          AS "plannedMonth",
-        SUM(r.actual_day)                        AS "cumulative"
+        COALESCE(m.cumulative, 0)                AS "cumulative"
       FROM production_daily_plans d
       JOIN production_month_plans m
         ON m.model = d.model
        AND m.plan_month = date_trunc('month', d.work_date)
-      JOIN production_daily_plans r
-        ON r.model = d.model
-       AND r.work_date BETWEEN date_trunc('month', d.work_date) AND d.work_date
       WHERE d.work_date = $1
-      GROUP BY
-        d.model,
-        d.planned_day,
-        d.actual_day,
-        m.planned_month
       ORDER BY d.model
       `,
       [date],
